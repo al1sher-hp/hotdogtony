@@ -360,8 +360,8 @@ export function Cart() {
 
     const handleOrder = async () => {
         if (!customerName.trim()) {
-            showToast('Iltimos, ismingizni kiriting', error');
-      return;
+            showToast('Iltimos, ismingizni kiriting', 'error');
+            return;
         }
 
         if (cart.length === 0) {
