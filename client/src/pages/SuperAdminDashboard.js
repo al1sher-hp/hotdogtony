@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { showToast } from '../components/shared/Toast';
+
 
 export default function SuperAdminDashboard() {
     const [activeTab, setActiveTab] = useState('users');

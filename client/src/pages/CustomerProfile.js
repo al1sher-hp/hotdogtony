@@ -4,11 +4,11 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { showToast } from '../components/shared/Toast';
-import { FiHeart, FiClock, FiLogOut } from 'react-icons/fi';
+import { FiClock, FiLogOut } from 'react-icons/fi';
 
 export default function CustomerProfile() {
     const [orders, setOrders] = useState([]);
-    const [favorites, setFavorites] = useState([]);
+    const [, setFavorites] = useState([]);
     const [loading, setLoading] = useState(true);
     const { user, logout } = useAuth();
     const navigate = useNavigate();

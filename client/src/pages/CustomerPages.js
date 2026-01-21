@@ -11,7 +11,7 @@ import api from '../utils/api';
 import socket from '../utils/socket';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { FiShoppingCart, FiHeart, FiUser, FiLogOut, FiPlus, FiMinus, FiTrash2, FiX } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2 } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 
 // ==================================================================
@@ -139,6 +139,7 @@ export function VerifyMagicLink() {
     const { login } = useAuth();
     const [status, setStatus] = useState('verifying');
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         const token = searchParams.get('token');
         if (!token) {
@@ -493,6 +494,7 @@ export function OrderConfirmation() {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         fetchOrder();
 

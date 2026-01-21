@@ -6,14 +6,13 @@ import socket from '../utils/socket';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import { FiCheckCircle, FiClock } from 'react-icons/fi';
+import { FiClock } from 'react-icons/fi';
 
 export default function EmployeeDashboard() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showScanner, setShowScanner] = useState(false);
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
+    const { logout } = useAuth();
 
     useEffect(() => {
         fetchOrders();
@@ -29,6 +28,7 @@ export default function EmployeeDashboard() {
         };
     }, []);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (showScanner) {
             const scanner = new Html5QrcodeScanner('qr-reader', {
