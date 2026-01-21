@@ -4,12 +4,14 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import socket from './utils/socket';
 
 // Pages (these will be created)
-import CustomerLanding from './pages/CustomerLanding';
-import Menu from './pages/Menu';
-import Cart from './pages/Cart';
-import OrderConfirmation from './pages/OrderConfirmation';
+import {
+    CustomerLanding,
+    Menu,
+    Cart,
+    OrderConfirmation,
+    VerifyMagicLink
+} from './pages/CustomerPages';
 import CustomerProfile from './pages/CustomerProfile';
-import VerifyMagicLink from './pages/VerifyMagicLink';
 
 import EmployeeLogin from './pages/EmployeeLogin';
 import EmployeeDashboard from './pages/EmployeeDashboard';
