@@ -1,5 +1,2 @@
-export { OrderConfirmation } from './CustomerPages';
-export default function OrderConfirmationPage() {
-    const { OrderConfirmation } = require('./CustomerPages');
-    return <OrderConfirmation />;
-}
+import { OrderConfirmation } from './CustomerPages';
+export default OrderConfirmation;
