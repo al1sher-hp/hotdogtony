@@ -1,0 +1,192 @@
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+const auth = require('../middleware/auth');
+const roleCheck = require('../middleware/roleCheck');
+
+// Get all users (boss/super-admin)
+router.get('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
+    try {
+        const { role } = req.query;
+        let query = {};
+
+        if (role) {
+            query.role = role;
+        }
+
+        // Boss can only see employees
+        if (req.user.role === 'boss') {
+            query.role = 'employee';
+        }
+
+        const users = await User.find(query)
+            .select('-password -magicLinkToken -magicLinkExpires')
+            .sort({ createdAt: -1 });
+
+        res.json({ users });
+    } catch (error) {
+        console.error('Get users error:', error);
+        res.status(500).json({ error: 'Failed to get users' });
+    }
+});
+
+// Create user (boss for employees, super-admin for all)
+router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
+    try {
+        const { name, email, password, role } = req.body;
+
+        if (!name || !email || !role) {
+            return res.status(400).json({
+                error: 'Name, email, and role are required'
+            });
+        }
+
+        // Boss can only create employees
+        if (req.user.role === 'boss' && role !== 'employee') {
+            return res.status(403).json({
+                error: 'Boss can only create employee accounts'
+            });
+        }
+
+        // Password required for staff roles
+        if (['employee', 'boss', 'super-admin'].includes(role) && !password) {
+            return res.status(400).json({
+                error: 'Password is required for staff accounts'
+            });
+        }
+
+        // Check if email already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: 'Email already in use' });
+        }
+
+        const user = new User({
+            name,
+            email,
+            password,
+            role
+        });
+
+        await user.save();
+
+        // Remove password from response
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
+        res.status(201).json({ user: userResponse });
+    } catch (error) {
+        console.error('Create user error:', error);
+        res.status(500).json({ error: 'Failed to create user' });
+    }
+});
+
+// Update user
+router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
+    try {
+        const updates = req.body;
+        const allowedUpdates = ['name', 'email', 'password', 'role'];
+        const requestedUpdates = Object.keys(updates);
+
+        const isValidOperation = requestedUpdates.every(update =>
+            allowedUpdates.includes(update)
+        );
+
+        if (!isValidOperation) {
+            return res.status(400).json({ error: 'Invalid updates' });
+        }
+
+        // Boss can only update employees
+        const userToUpdate = await User.findById(req.params.id);
+        if (!userToUpdate) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (req.user.role === 'boss' && userToUpdate.role !== 'employee') {
+            return res.status(403).json({
+                error: 'Boss can only update employee accounts'
+            });
+        }
+
+        // Apply updates
+        Object.keys(updates).forEach(key => {
+            userToUpdate[key] = updates[key];
+        });
+
+        await userToUpdate.save();
+
+        // Remove password from response
+        const userResponse = userToUpdate.toObject();
+        delete userResponse.password;
+
+        res.json({ user: userResponse });
+    } catch (error) {
+        console.error('Update user error:', error);
+        res.status(500).json({ error: 'Failed to update user' });
+    }
+});
+
+// Delete user
+router.delete('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Boss can only delete employees
+        if (req.user.role === 'boss' && user.role !== 'employee') {
+            return res.status(403).json({
+                error: 'Boss can only delete employee accounts'
+            });
+        }
+
+        // Prevent deleting yourself
+        if (user._id.toString() === req.user._id.toString()) {
+            return res.status(400).json({ error: 'Cannot delete your own account' });
+        }
+
+        await User.findByIdAndDelete(req.params.id);
+
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error('Delete user error:', error);
+        res.status(500).json({ error: 'Failed to delete user' });
+    }
+});
+
+// Toggle favorite item (customer)
+router.patch('/favorites/toggle', auth, roleCheck('customer'), async (req, res) => {
+    try {
+        const { menuItemId } = req.body;
+
+        if (!menuItemId) {
+            return res.status(400).json({ error: 'Menu item ID is required' });
+        }
+
+        const user = await User.findById(req.user._id);
+        const index = user.favoriteItems.indexOf(menuItemId);
+
+        if (index > -1) {
+            // Remove from favorites
+            user.favoriteItems.splice(index, 1);
+        } else {
+            // Add to favorites
+            user.favoriteItems.push(menuItemId);
+        }
+
+        await user.save();
+        await user.populate('favoriteItems');
+
+        res.json({
+            favoriteItems: user.favoriteItems,
+            message: index > -1 ? 'Removed from favorites' : 'Added to favorites'
+        });
+    } catch (error) {
+        console.error('Toggle favorite error:', error);
+        res.status(500).json({ error: 'Failed to toggle favorite' });
+    }
+});
+
+module.exports = router;

@@ -1,0 +1,159 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles */
+@layer base {
+  * {
+    @apply border-gray-300;
+  }
+  
+  body {
+    @apply bg-base-200 text-neutral;
+  }
+}
+
+/* Custom Components */
+@layer components {
+  .btn-gradient {
+    @apply bg-gradient-to-r from-primary to-secondary text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-2xl hover:-translate-y-2;
+  }
+  
+  .glass-card {
+    @apply bg-white bg-opacity-80 backdrop-blur-lg shadow-xl rounded-2xl;
+  }
+  
+  .input-modern {
+    @apply input input-bordered w-full focus:ring-2 focus:ring-primary focus:border-primary transition-all;
+  }
+  
+  .section-gradient {
+    @apply bg-gradient-to-br from-primary via-secondary to-accent;
+  }
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 107, 107, 0.8);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+.animate-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-base-300;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-primary rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-secondary;
+}
+
+/* Loading Spinner */
+.spinner {
+  border: 4px solid rgba(255, 107, 107, 0.1);
+  border-left-color: #FF6B6B;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Toast Notifications */
+.toast-container {
+  @apply fixed top-4 right-4 z-50 space-y-2;
+}
+
+/* Display Screen Adjustments */
+.display-screen {
+  @apply text-4xl md:text-5xl lg:text-6xl font-bold;
+}
+
+.display-item {
+  @apply p-4 md:p-6 rounded-xl transition-all duration-300;
+}
+
+/* QR Scanner */
+#qr-reader {
+  @apply rounded-lg overflow-hidden;
+}
+
+#qr-reader video {
+  @apply w-full rounded-lg;
+}
+
+/* Chart Styles */
+canvas {
+  @apply max-w-full;
+}
+
+/* Responsive Text */
+@layer utilities {
+  .text-responsive {
+    font-size: clamp(1rem, 2vw, 1.5rem);
+  }
+  
+  .heading-responsive {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+  }
+}
+
+/* Print Styles */
+@media print {
+  body {
+    @apply bg-white;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
