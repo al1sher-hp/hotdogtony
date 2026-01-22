@@ -4,7 +4,7 @@ import api from '../utils/api';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { showToast } from '../components/shared/Toast';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, Title, Tooltip, Legend, PointElement } from 'chart.js';
-import { Bar, Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend);
@@ -17,19 +17,19 @@ export default function BossDashboard() {
     const { logout } = useAuth();
 
     useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await api.get(`/reports/stats?period=${period}`);
+                setStats(response.data);
+            } catch (error) {
+                showToast('Statistika yuklanmadi', 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchStats();
     }, [period]);
-
-    const fetchStats = async () => {
-        try {
-            const response = await api.get(`/reports/stats?period=${period}`);
-            setStats(response.data);
-        } catch (error) {
-            showToast('Statistika yuklanmadi', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const exportToExcel = async () => {
         try {

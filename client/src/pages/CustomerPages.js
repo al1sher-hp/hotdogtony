@@ -141,6 +141,18 @@ export function VerifyMagicLink() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
+        const verifyToken = async (token) => {
+            try {
+                const response = await api.get(`/auth/verify-magic-link/${token}`);
+                login(response.data.token, response.data.user);
+                showToast('Muvaffaqiyatli kirdingiz!', 'success');
+                setTimeout(() => navigate('/menu'), 1000);
+            } catch (error) {
+                setStatus('error');
+                showToast('Link yaroqsiz yoki muddati tugagan', 'error');
+            }
+        };
+
         const token = searchParams.get('token');
         if (!token) {
             setStatus('error');
@@ -148,19 +160,7 @@ export function VerifyMagicLink() {
         }
 
         verifyToken(token);
-    }, [searchParams]);
-
-    const verifyToken = async (token) => {
-        try {
-            const response = await api.get(`/auth/verify-magic-link/${token}`);
-            login(response.data.token, response.data.user);
-            showToast('Muvaffaqiyatli kirdingiz!', 'success');
-            setTimeout(() => navigate('/menu'), 1000);
-        } catch (error) {
-            setStatus('error');
-            showToast('Link yaroqsiz yoki muddati tugagan', 'error');
-        }
-    };
+    }, [searchParams, login, navigate]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-base-200">
@@ -496,6 +496,24 @@ export function OrderConfirmation() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
+        const fetchOrder = async () => {
+            try {
+                const response = await api.get(`/orders/${orderId}`);
+                setOrder(response.data.order);
+                // Generate QR code
+                const qrData = JSON.stringify({
+                    orderId: response.data.order._id,
+                    code: response.data.order.qrCode,
+                    timestamp: Date.now()
+                });
+                setQrDataURL(qrData);
+            } catch (error) {
+                showToast('Buyurtma topilmadi', 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchOrder();
 
         // Listen for order updates
@@ -518,24 +536,6 @@ export function OrderConfirmation() {
             socket.off('orderReady');
         };
     }, [orderId]);
-
-    const fetchOrder = async () => {
-        try {
-            const response = await api.get(`/orders/${orderId}`);
-            setOrder(response.data.order);
-            // Generate QR code
-            const qrData = JSON.stringify({
-                orderId: response.data.order._id,
-                code: response.data.order.qrCode,
-                timestamp: Date.now()
-            });
-            setQrDataURL(qrData);
-        } catch (error) {
-            showToast('Buyurtma topilmadi', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const getStatusText = (status) => {
         const statuses = {

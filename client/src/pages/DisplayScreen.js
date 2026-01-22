@@ -8,6 +8,24 @@ export default function DisplayScreen() {
     const audioRef = useRef(null);
 
     useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const prepResp = await api.get('/orders?status=preparing');
+                setPreparing(prepResp.data.orders);
+
+                const readyResp = await api.get('/orders?status=ready');
+                setReady(readyResp.data.orders);
+            } catch (error) {
+                console.error('Fetch error:', error);
+            }
+        };
+
+        const playSound = () => {
+            if (audioRef.current) {
+                audioRef.current.play();
+            }
+        };
+
         fetchOrders();
         socket.emit('joinDisplay');
 
@@ -34,24 +52,6 @@ export default function DisplayScreen() {
             socket.off('orderReady');
         };
     }, []);
-
-    const fetchOrders = async () => {
-        try {
-            const prepResp = await api.get('/orders?status=preparing');
-            setPreparing(prepResp.data.orders);
-
-            const readyResp = await api.get('/orders?status=ready');
-            setReady(readyResp.data.orders);
-        } catch (error) {
-            console.error('Fetch error:', error);
-        }
-    };
-
-    const playSound = () => {
-        if (audioRef.current) {
-            audioRef.current.play();
-        }
-    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary to-secondary p-8">

@@ -16,6 +16,18 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const verifyToken = async () => {
+            try {
+                const response = await api.get('/auth/me');
+                setUser(response.data.user);
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                logout();
+            } finally {
+                setLoading(false);
+            }
+        };
+
         // Check for stored token on mount
         const token = localStorage.getItem('token');
         const storedUser = localStorage.getItem('user');
@@ -27,18 +39,6 @@ export const AuthProvider = ({ children }) => {
             setLoading(false);
         }
     }, []);
-
-    const verifyToken = async () => {
-        try {
-            const response = await api.get('/auth/me');
-            setUser(response.data.user);
-        } catch (error) {
-            console.error('Token verification failed:', error);
-            logout();
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const login = (token, userData) => {
         localStorage.setItem('token', token);

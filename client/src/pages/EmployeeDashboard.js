@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
 import socket from '../utils/socket';
@@ -14,38 +14,7 @@ export default function EmployeeDashboard() {
     const [showScanner, setShowScanner] = useState(false);
     const { logout } = useAuth();
 
-    useEffect(() => {
-        fetchOrders();
-        socket.emit('joinEmployee');
-
-        socket.on('newOrder', (order) => {
-            setOrders(prev => [order, ...prev]);
-            showToast('Yangi buyurtma!', 'info');
-        });
-
-        return () => {
-            socket.off('newOrder');
-        };
-    }, []);
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => {
-        if (showScanner) {
-            const scanner = new Html5QrcodeScanner('qr-reader', {
-                fps: 10,
-                qrbox: 250,
-                videoConstraints: { facingMode: 'environment' }
-            });
-
-            scanner.render(onScanSuccess, onScanError);
-
-            return () => {
-                scanner.clear();
-            };
-        }
-    }, [showScanner]);
-
-    const fetchOrders = async () => {
+    const fetchOrders = React.useCallback(async () => {
         try {
             const response = await api.get('/orders?status=pending,preparing');
             setOrders(response.data.orders);
@@ -54,9 +23,9 @@ export default function EmployeeDashboard() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
 
-    const onScanSuccess = async (decodedText) => {
+    const onScanSuccess = React.useCallback(async (decodedText) => {
         try {
             const response = await api.post('/orders/verify-qr', { qrData: decodedText });
             showToast(`Buyurtma #${response.data.order.dailyNumber} tasdiqlandi`, 'success');
@@ -65,11 +34,11 @@ export default function EmployeeDashboard() {
         } catch (error) {
             showToast('QR kod xato', 'error');
         }
-    };
+    }, [fetchOrders]);
 
-    const onScanError = (error) => {
+    const onScanError = React.useCallback((error) => {
         // Ignore scan errors
-    };
+    }, []);
 
     const confirmOrder = async (orderId) => {
         try {
@@ -90,6 +59,36 @@ export default function EmployeeDashboard() {
             showToast('Xatolik', 'error');
         }
     };
+
+    useEffect(() => {
+        fetchOrders();
+        socket.emit('joinEmployee');
+
+        socket.on('newOrder', (order) => {
+            setOrders(prev => [order, ...prev]);
+            showToast('Yangi buyurtma!', 'info');
+        });
+
+        return () => {
+            socket.off('newOrder');
+        };
+    }, [fetchOrders]);
+
+    useEffect(() => {
+        if (showScanner) {
+            const scanner = new Html5QrcodeScanner('qr-reader', {
+                fps: 10,
+                qrbox: 250,
+                videoConstraints: { facingMode: 'environment' }
+            });
+
+            scanner.render(onScanSuccess, onScanError);
+
+            return () => {
+                scanner.clear();
+            };
+        }
+    }, [showScanner, onScanSuccess, onScanError]);
 
     if (loading) return <LoadingSpinner />;
 

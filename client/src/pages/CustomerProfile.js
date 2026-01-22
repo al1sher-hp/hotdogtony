@@ -14,22 +14,22 @@ export default function CustomerProfile() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const response = await api.get('/orders/my/orders');
+                setOrders(response.data.orders);
+            } catch (error) {
+                showToast('Buyurtmalarni yuklab bo\'lmadi', 'error');
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchOrders();
         if (user?.favoriteItems) {
             setFavorites(user.favoriteItems);
         }
     }, [user]);
-
-    const fetchOrders = async () => {
-        try {
-            const response = await api.get('/orders/my/orders');
-            setOrders(response.data.orders);
-        } catch (error) {
-            showToast('Buyurtmalarni yuklab bo\'lmadi', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleLogout = () => {
         logout();
