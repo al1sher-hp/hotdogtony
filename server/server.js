@@ -105,23 +105,36 @@ mongoose.connect(process.env.MONGODB_URI, {
 // Initialize super-admin
 const initializeSuperAdmin = async () => {
     const User = require('./models/User');
+    const adminEmail = 'admin@hotdog.uz';
 
     try {
-        const superAdmin = await User.findOne({ role: 'super-admin' });
+        // Find if a super-admin with this email already exists
+        const existingAdmin = await User.findOne({ email: adminEmail });
 
-        if (!superAdmin) {
+        if (!existingAdmin) {
+            console.log('🚀 Creating default Super Admin...');
             const defaultAdmin = new User({
                 name: 'Super Admin',
-                email: 'admin@hotdog.uz',
+                email: adminEmail,
                 password: 'admin123',
                 role: 'super-admin'
             });
 
             await defaultAdmin.save();
-            console.log('✅ Super Admin created (email: admin@hotdog.uz, password: admin123)');
+            console.log(`✅ Super Admin created!`);
+            console.log(`📧 Email: ${adminEmail}`);
+            console.log(`🔑 Password: admin123`);
+        } else {
+            console.log('ℹ️ Super Admin already exists:', adminEmail);
+            // Ensure the role is correct even if it exists
+            if (existingAdmin.role !== 'super-admin') {
+                existingAdmin.role = 'super-admin';
+                await existingAdmin.save();
+                console.log('🔄 Updated existing user role to super-admin');
+            }
         }
     } catch (error) {
-        console.error('Error initializing super admin:', error);
+        console.error('❌ Error initializing super admin:', error);
     }
 };
 

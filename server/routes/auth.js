@@ -105,7 +105,13 @@ router.post('/login', async (req, res) => {
         // Find user
         const user = await User.findOne({ email });
 
-        if (!user || user.role === 'customer') {
+        if (!user) {
+            console.log(`🔍 Login attempt failed: User not found (${email})`);
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        if (user.role === 'customer') {
+            console.log(`🔍 Login attempt failed: Customer role not allowed for staff login (${email})`);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
@@ -113,6 +119,7 @@ router.post('/login', async (req, res) => {
         const isMatch = await user.comparePassword(password);
 
         if (!isMatch) {
+            console.log(`🔍 Login attempt failed: Incorrect password for ${email}`);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 

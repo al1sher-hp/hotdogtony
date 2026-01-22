@@ -9,13 +9,14 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    sparse: true, // Allow null, but unique if present
+    required: true,
+    unique: true,
     trim: true,
     lowercase: true
   },
   password: {
     type: String,
-    required: function() {
+    required: function () {
       // Password required for employee, boss, super-admin
       return ['employee', 'boss', 'super-admin'].includes(this.role);
     }
@@ -38,9 +39,9 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving (only for staff)
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (!this.isModified('password') || !this.password) return next();
-  
+
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -51,7 +52,7 @@ userSchema.pre('save', async function(next) {
 });
 
 // Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
 };
