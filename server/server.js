@@ -91,10 +91,12 @@ mongoose.connect(process.env.MONGODB_URI, {
     .then(() => {
         console.log('✅ Connected to MongoDB');
 
-        // Initialize default super-admin if doesn't exist
+        // Initialize default users
         initializeSuperAdmin();
+        initializeBoss();
+        initializeEmployee();
 
-        // Initialize some default menu items (for testing)
+        // Initialize default menu items
         initializeDefaultMenu();
     })
     .catch(err => {
@@ -108,7 +110,6 @@ const initializeSuperAdmin = async () => {
     const adminEmail = 'admin@hotdog.uz';
 
     try {
-        // Find if a super-admin with this email already exists
         const existingAdmin = await User.findOne({ email: adminEmail });
 
         if (!existingAdmin) {
@@ -122,19 +123,57 @@ const initializeSuperAdmin = async () => {
 
             await defaultAdmin.save();
             console.log(`✅ Super Admin created!`);
-            console.log(`📧 Email: ${adminEmail}`);
-            console.log(`🔑 Password: admin123`);
         } else {
             console.log('ℹ️ Super Admin already exists:', adminEmail);
-            // Ensure the role is correct even if it exists
-            if (existingAdmin.role !== 'super-admin') {
-                existingAdmin.role = 'super-admin';
-                await existingAdmin.save();
-                console.log('🔄 Updated existing user role to super-admin');
-            }
         }
     } catch (error) {
         console.error('❌ Error initializing super admin:', error);
+    }
+};
+
+// Initialize boss
+const initializeBoss = async () => {
+    const User = require('./models/User');
+    const bossEmail = 'boss@hotdog.uz';
+
+    try {
+        const existingBoss = await User.findOne({ email: bossEmail });
+        if (!existingBoss) {
+            console.log('🚀 Creating default Boss...');
+            const defaultBoss = new User({
+                name: 'Hotdog Boss',
+                email: bossEmail,
+                password: 'boss123',
+                role: 'boss'
+            });
+            await defaultBoss.save();
+            console.log(`✅ Boss created! (${bossEmail} / boss123)`);
+        }
+    } catch (error) {
+        console.error('❌ Error initializing boss:', error);
+    }
+};
+
+// Initialize employee
+const initializeEmployee = async () => {
+    const User = require('./models/User');
+    const empEmail = 'zohid@hotdog.uz';
+
+    try {
+        const existingEmp = await User.findOne({ email: empEmail });
+        if (!existingEmp) {
+            console.log('🚀 Creating default Employee...');
+            const defaultEmp = new User({
+                name: 'Zohid Hodim',
+                email: empEmail,
+                password: 'staff123',
+                role: 'employee'
+            });
+            await defaultEmp.save();
+            console.log(`✅ Employee created! (${empEmail} / staff123)`);
+        }
+    } catch (error) {
+        console.error('❌ Error initializing employee:', error);
     }
 };
 
