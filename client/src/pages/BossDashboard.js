@@ -138,8 +138,8 @@ export default function BossDashboard() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all ${activeTab === tab.id
-                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 translate-y-[-2px]'
-                                    : 'bg-white text-gray-500 hover:bg-gray-50'
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 translate-y-[-2px]'
+                                : 'bg-white text-gray-500 hover:bg-gray-50'
                                 }`}
                         >
                             {tab.icon} {tab.label}
@@ -302,8 +302,12 @@ export default function BossDashboard() {
                                 };
                                 if (!editItem) data.password = e.target.password.value;
                                 try {
-                                    if (editItem) await api.patch(`/users/${editItem._id}`, data);
-                                    else await api.post('/users', data);
+                                    if (editItem) {
+                                        const { _id, __v, createdAt, updatedAt, ...updateData } = data;
+                                        await api.patch(`/users/${editItem._id}`, updateData);
+                                    } else {
+                                        await api.post('/users', data);
+                                    }
                                     showToast('Saqlandi'); setShowModal(false); fetchData();
                                 } catch (err) { showToast('Xatolik', 'error'); }
                             }} className="space-y-4">

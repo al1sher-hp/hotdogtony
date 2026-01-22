@@ -88,8 +88,8 @@ export default function SuperAdminDashboard() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all font-medium ${activeTab === tab.id
-                                    ? 'bg-indigo-600 text-white shadow-md scale-105'
-                                    : 'hover:bg-indigo-50 text-gray-600'
+                                ? 'bg-indigo-600 text-white shadow-md scale-105'
+                                : 'hover:bg-indigo-50 text-gray-600'
                                 }`}
                         >
                             {tab.icon} {tab.label}
@@ -182,8 +182,8 @@ const UsersTable = ({ users, onDelete, onEdit }) => (
                     <td className="text-gray-600">{user.email}</td>
                     <td>
                         <span className={`badge badge-ghost capitalize font-medium ${user.role === 'super-admin' ? 'bg-purple-100 text-purple-700' :
-                                user.role === 'boss' ? 'bg-blue-100 text-blue-700' :
-                                    'bg-green-100 text-green-700'
+                            user.role === 'boss' ? 'bg-blue-100 text-blue-700' :
+                                'bg-green-100 text-green-700'
                             }`}>
                             {user.role}
                         </span>
@@ -315,7 +315,9 @@ const UserForm = ({ item, onCancel, onSuccess }) => {
         setSubmitting(true);
         try {
             if (item) {
-                await api.patch(`/users/${item._id}`, formData);
+                // Strip fields that shouldn't be patched
+                const { _id, __v, createdAt, updatedAt, ...updateData } = formData;
+                await api.patch(`/users/${item._id}`, updateData);
             } else {
                 await api.post('/users', formData);
             }
@@ -393,7 +395,8 @@ const MenuForm = ({ item, ingredients, onCancel, onSuccess }) => {
         setSubmitting(true);
         try {
             if (item) {
-                await api.patch(`/menu/${item._id}`, formData);
+                const { _id, __v, createdAt, updatedAt, ...updateData } = formData;
+                await api.patch(`/menu/${item._id}`, updateData);
             } else {
                 await api.post('/menu', formData);
             }

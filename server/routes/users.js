@@ -36,8 +36,9 @@ router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
         const { name, email, password, role } = req.body;
 
         if (!name || !email || !role) {
+            console.log('⚠️ User creation failed: Missing fields', { name: !!name, email: !!email, role: !!role });
             return res.status(400).json({
-                error: 'Name, email, and role are required'
+                error: 'Ism, email va huquq (role) kiritilishi shart'
             });
         }
 
@@ -50,15 +51,17 @@ router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
 
         // Password required for staff roles
         if (['employee', 'boss', 'super-admin'].includes(role) && !password) {
+            console.log(`⚠️ User creation failed: Missing password for staff role (${role})`);
             return res.status(400).json({
-                error: 'Password is required for staff accounts'
+                error: 'Xodim akkaunti uchun parol kiritilishi shart'
             });
         }
 
         // Check if email already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return res.status(400).json({ error: 'Email already in use' });
+            console.log(`⚠️ User creation failed: Email already exists (${email})`);
+            return res.status(400).json({ error: 'Bu email band. Boshqa email tanlang.' });
         }
 
         const user = new User({
@@ -88,14 +91,6 @@ router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) 
         const allowedUpdates = ['name', 'email', 'password', 'role'];
         const requestedUpdates = Object.keys(updates);
 
-        const isValidOperation = requestedUpdates.every(update =>
-            allowedUpdates.includes(update)
-        );
-
-        if (!isValidOperation) {
-            return res.status(400).json({ error: 'Invalid updates' });
-        }
-
         // Boss can only update employees
         const userToUpdate = await User.findById(req.params.id);
         if (!userToUpdate) {
@@ -109,8 +104,10 @@ router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) 
         }
 
         // Apply updates
-        Object.keys(updates).forEach(key => {
-            userToUpdate[key] = updates[key];
+        requestedUpdates.forEach(key => {
+            if (allowedUpdates.includes(key)) {
+                userToUpdate[key] = updates[key];
+            }
         });
 
         await userToUpdate.save();

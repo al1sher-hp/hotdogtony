@@ -105,17 +105,17 @@ router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) 
         const allowedUpdates = ['name', 'description', 'price', 'category', 'image', 'ingredients', 'available'];
         const requestedUpdates = Object.keys(updates);
 
-        const isValidOperation = requestedUpdates.every(update =>
-            allowedUpdates.includes(update)
-        );
-
-        if (!isValidOperation) {
-            return res.status(400).json({ error: 'Invalid updates' });
-        }
+        // Filter updates
+        const filteredUpdates = {};
+        requestedUpdates.forEach(key => {
+            if (allowedUpdates.includes(key)) {
+                filteredUpdates[key] = updates[key];
+            }
+        });
 
         const menuItem = await MenuItem.findByIdAndUpdate(
             req.params.id,
-            updates,
+            filteredUpdates,
             { new: true, runValidators: true }
         ).populate('ingredients');
 

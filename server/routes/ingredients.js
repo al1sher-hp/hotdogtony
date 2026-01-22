@@ -66,19 +66,19 @@ router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) 
         const allowedUpdates = ['name', 'unit', 'currentStock', 'minStock', 'maxStock'];
         const requestedUpdates = Object.keys(updates);
 
-        const isValidOperation = requestedUpdates.every(update =>
-            allowedUpdates.includes(update)
-        );
+        // Filter updates
+        const filteredUpdates = {};
+        requestedUpdates.forEach(key => {
+            if (allowedUpdates.includes(key)) {
+                filteredUpdates[key] = updates[key];
+            }
+        });
 
-        if (!isValidOperation) {
-            return res.status(400).json({ error: 'Invalid updates' });
-        }
-
-        updates.lastUpdated = new Date();
+        filteredUpdates.lastUpdated = new Date();
 
         const ingredient = await Ingredient.findByIdAndUpdate(
             req.params.id,
-            updates,
+            filteredUpdates,
             { new: true, runValidators: true }
         );
 
