@@ -416,9 +416,3 @@ const MenuForm = ({ item, onCancel, onSuccess }) => {
         </form>
     );
 };
-                    </div >
-                </div >
-            )}
-        </div >
-    );
-}
