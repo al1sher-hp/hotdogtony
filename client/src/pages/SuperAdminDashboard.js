@@ -144,6 +144,7 @@ export default function SuperAdminDashboard() {
 
                         {modalType === 'user' && (
                             <UserForm
+                                key={editItem?._id || 'new-user'}
                                 item={editItem}
                                 onCancel={() => setShowModal(false)}
                                 onSuccess={() => { setShowModal(false); fetchData(); }}
@@ -152,6 +153,7 @@ export default function SuperAdminDashboard() {
 
                         {modalType === 'menu' && (
                             <MenuForm
+                                key={editItem?._id || 'new-menu'}
                                 item={editItem}
                                 ingredients={ingredients}
                                 onCancel={() => setShowModal(false)}
@@ -342,7 +344,7 @@ const UserForm = ({ item, onCancel, onSuccess }) => {
                     type="text"
                     className="input input-bordered rounded-xl bg-gray-50 focus:bg-white"
                     value={formData.name}
-                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     required
                 />
             </div>
@@ -352,7 +354,7 @@ const UserForm = ({ item, onCancel, onSuccess }) => {
                     type="email"
                     className="input input-bordered rounded-xl bg-gray-50 focus:bg-white"
                     value={formData.email}
-                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
                     required
                 />
             </div>
@@ -364,7 +366,7 @@ const UserForm = ({ item, onCancel, onSuccess }) => {
                     type="password"
                     className="input input-bordered rounded-xl bg-gray-50 focus:bg-white"
                     value={formData.password}
-                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    onChange={e => setFormData(prev => ({ ...prev, password: e.target.value }))}
                     required={!item}
                 />
             </div>
@@ -373,7 +375,7 @@ const UserForm = ({ item, onCancel, onSuccess }) => {
                 <select
                     className="select select-bordered rounded-xl bg-gray-50 focus:bg-white"
                     value={formData.role}
-                    onChange={e => setFormData({ ...formData, role: e.target.value })}
+                    onChange={e => setFormData(prev => ({ ...prev, role: e.target.value }))}
                 >
                     <option value="employee">Hodim</option>
                     <option value="boss">Boss</option>
@@ -409,11 +411,16 @@ const MenuForm = ({ item, ingredients, onCancel, onSuccess }) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onloadend = async () => {
-                const base64Image = reader.result;
-                const response = await api.post('/menu/upload-image', { image: base64Image });
-                setFormData({ ...formData, image: response.data.imageUrl });
-                showToast('Rasm yuklandi', 'success');
-                setUploading(false);
+                try {
+                    const base64Image = reader.result;
+                    const response = await api.post('/menu/upload-image', { image: base64Image });
+                    setFormData(prev => ({ ...prev, image: response.data.imageUrl }));
+                    showToast('Rasm yuklandi', 'success');
+                } catch (err) {
+                    showToast('Rasm yuklashda xatolik: ' + (err.response?.data?.error || err.message), 'error');
+                } finally {
+                    setUploading(false);
+                }
             };
         } catch (error) {
             console.error('Image upload error:', error);
@@ -450,24 +457,25 @@ const MenuForm = ({ item, ingredients, onCancel, onSuccess }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-control">
                     <label className="label text-sm font-bold text-gray-600 uppercase">Nomi</label>
-                    <input type="text" className="input input-bordered rounded-xl" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                    <input type="text" className="input input-bordered rounded-xl" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} required />
                 </div>
                 <div className="form-control">
                     <label className="label text-sm font-bold text-gray-600 uppercase">Narxi</label>
-                    <input type="number" className="input input-bordered rounded-xl" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+                    <input type="number" className="input input-bordered rounded-xl" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} required />
                 </div>
             </div>
             <div className="form-control">
                 <label className="label text-sm font-bold text-gray-600 uppercase">Tavsif</label>
-                <textarea className="textarea textarea-bordered rounded-xl h-24" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} required />
+                <textarea className="textarea textarea-bordered rounded-xl h-24" value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} required />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-control">
                     <label className="label text-sm font-bold text-gray-600 uppercase">Kategoriya</label>
-                    <select className="select select-bordered rounded-xl" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
+                    <select className="select select-bordered rounded-xl" value={formData.category} onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}>
                         <option value="classic">Classic</option>
                         <option value="premium">Premium</option>
                         <option value="combo">Combo</option>
+                        <option value="sides">Sides</option>
                         <option value="drinks">Drinks</option>
                     </select>
                 </div>

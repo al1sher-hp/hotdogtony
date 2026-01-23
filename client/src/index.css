@@ -7,7 +7,7 @@
   * {
     @apply border-gray-300;
   }
-  
+
   body {
     @apply bg-base-200 text-neutral;
   }
@@ -18,19 +18,19 @@
   .btn-gradient {
     @apply bg-gradient-to-r from-primary to-secondary text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300;
   }
-  
+
   .card-hover {
     @apply transition-all duration-300 hover:shadow-2xl hover:-translate-y-2;
   }
-  
+
   .glass-card {
     @apply bg-white bg-opacity-80 backdrop-blur-lg shadow-xl rounded-2xl;
   }
-  
+
   .input-modern {
     @apply input input-bordered w-full focus:ring-2 focus:ring-primary focus:border-primary transition-all;
   }
-  
+
   .section-gradient {
     @apply bg-gradient-to-br from-primary via-secondary to-accent;
   }
@@ -42,6 +42,7 @@
     transform: translateX(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -52,15 +53,19 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(255, 107, 107, 0.8);
   }
@@ -110,7 +115,7 @@
 
 /* Toast Notifications */
 .toast-container {
-  @apply fixed top-4 right-4 z-50 space-y-2;
+  @apply fixed top-4 right-4 z-[9999] space-y-3 max-w-sm w-full;
 }
 
 /* Display Screen Adjustments */
@@ -141,7 +146,7 @@ canvas {
   .text-responsive {
     font-size: clamp(1rem, 2vw, 1.5rem);
   }
-  
+
   .heading-responsive {
     font-size: clamp(1.5rem, 4vw, 3rem);
   }
@@ -152,7 +157,7 @@ canvas {
   body {
     @apply bg-white;
   }
-  
+
   .no-print {
     display: none !important;
   }

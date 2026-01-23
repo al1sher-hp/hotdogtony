@@ -89,7 +89,11 @@ router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) 
         res.json({ ingredient });
     } catch (error) {
         console.error('Update ingredient error:', error);
-        res.status(500).json({ error: 'Failed to update ingredient' });
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ error: messages.join(', ') });
+        }
+        res.status(500).json({ error: 'Masalliqni yangilashda xatolik' });
     }
 });
 

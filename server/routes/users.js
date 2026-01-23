@@ -80,7 +80,17 @@ router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
         res.status(201).json({ user: userResponse });
     } catch (error) {
         console.error('Create user error:', error);
-        res.status(500).json({ error: 'Failed to create user' });
+
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ error: messages.join(', ') });
+        }
+
+        if (error.code === 11000) {
+            return res.status(400).json({ error: 'Bu email allaqachon ro\'yxatdan o\'tgan' });
+        }
+
+        res.status(500).json({ error: 'Foydalanuvchini yaratishda xatolik yuz berdi' });
     }
 });
 
@@ -123,7 +133,17 @@ router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) 
         res.json({ user: userResponse });
     } catch (error) {
         console.error('Update user error:', error);
-        res.status(500).json({ error: 'Failed to update user' });
+
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(val => val.message);
+            return res.status(400).json({ error: messages.join(', ') });
+        }
+
+        if (error.code === 11000) {
+            return res.status(400).json({ error: 'Bu email allaqachon ro\'yxatdan o\'tgan' });
+        }
+
+        res.status(500).json({ error: 'Foydalanuvchini yangilashda xatolik yuz berdi' });
     }
 });
 

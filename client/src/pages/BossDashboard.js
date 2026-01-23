@@ -289,31 +289,33 @@ export default function BossDashboard() {
 
             {/* Reused Modals from SuperAdmin or simplified ones here */}
             {showModal && (
-                <div className="modal modal-open bg-black/40 backdrop-blur-sm">
+                <div className="modal modal-open bg-black/40 backdrop-blur-sm shadow-2xl">
                     <div className="modal-box rounded-3xl p-8 max-w-xl">
                         <h3 className="font-bold text-2xl mb-6">{editItem ? 'Tahrirlash' : 'Yangi qo\'shish'}</h3>
                         {modalType === 'employee' ? (
-                            <form onSubmit={async (e) => {
-                                e.preventDefault();
-                                const name = e.target.name.value;
-                                const email = e.target.email.value;
-                                const password = e.target.password?.value;
+                            <form
+                                key={editItem?._id || 'new-employee'}
+                                onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    const name = e.target.name.value;
+                                    const email = e.target.email.value;
+                                    const password = e.target.password?.value;
 
-                                try {
-                                    if (editItem) {
-                                        const updateData = { name, email };
-                                        if (password) updateData.password = password;
-                                        await api.patch(`/users/${editItem._id}`, updateData);
-                                    } else {
-                                        await api.post('/users', { name, email, password, role: 'employee' });
+                                    try {
+                                        if (editItem) {
+                                            const updateData = { name, email };
+                                            if (password) updateData.password = password;
+                                            await api.patch(`/users/${editItem._id}`, updateData);
+                                        } else {
+                                            await api.post('/users', { name, email, password, role: 'employee' });
+                                        }
+                                        showToast('Saqlandi', 'success');
+                                        setShowModal(false);
+                                        fetchData();
+                                    } catch (err) {
+                                        showToast(err.response?.data?.error || 'Xatolik', 'error');
                                     }
-                                    showToast('Saqlandi', 'success');
-                                    setShowModal(false);
-                                    fetchData();
-                                } catch (err) {
-                                    showToast(err.response?.data?.error || 'Xatolik', 'error');
-                                }
-                            }} className="space-y-4">
+                                }} className="space-y-4">
                                 <div className="form-control">
                                     <label className="label text-xs font-bold text-gray-400 uppercase">F.I.SH.</label>
                                     <input name="name" defaultValue={editItem?.name} className="input input-bordered w-full rounded-xl" required />
@@ -333,6 +335,7 @@ export default function BossDashboard() {
                             </form>
                         ) : (
                             <MenuForm
+                                key={editItem?._id || 'new-menu'}
                                 item={editItem}
                                 onCancel={() => setShowModal(false)}
                                 onSuccess={() => { setShowModal(false); fetchData(); }}
@@ -359,10 +362,15 @@ const MenuForm = ({ item, onCancel, onSuccess }) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onloadend = async () => {
-                const response = await api.post('/menu/upload-image', { image: reader.result });
-                setFormData({ ...formData, image: response.data.imageUrl });
-                showToast('Rasm yuklandi', 'success');
-                setUploading(false);
+                try {
+                    const response = await api.post('/menu/upload-image', { image: reader.result });
+                    setFormData(prev => ({ ...prev, image: response.data.imageUrl }));
+                    showToast('Rasm yuklandi', 'success');
+                } catch (err) {
+                    showToast('Rasm yuklashda xatolik: ' + (err.response?.data?.error || err.message), 'error');
+                } finally {
+                    setUploading(false);
+                }
             };
         } catch (error) {
             showToast('Rasm yuklashda xatolik', 'error');
@@ -384,7 +392,7 @@ const MenuForm = ({ item, onCancel, onSuccess }) => {
             showToast('Saqlandi', 'success');
             onSuccess();
         } catch (error) {
-            showToast('Xatolik', 'error');
+            showToast(error.response?.data?.error || 'Xatolik', 'error');
         } finally {
             setSubmitting(false);
         }
@@ -393,15 +401,16 @@ const MenuForm = ({ item, onCancel, onSuccess }) => {
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-                <input placeholder="Nomi" className="input input-bordered rounded-xl" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
-                <input type="number" placeholder="Narxi" className="input input-bordered rounded-xl" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+                <input placeholder="Nomi" className="input input-bordered rounded-xl" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} required />
+                <input type="number" placeholder="Narxi" className="input input-bordered rounded-xl" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} required />
             </div>
-            <textarea placeholder="Tavsif" className="textarea textarea-bordered rounded-xl w-full h-24" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} required />
+            <textarea placeholder="Tavsif" className="textarea textarea-bordered rounded-xl w-full h-24" value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} required />
             <div className="grid grid-cols-2 gap-4">
-                <select className="select select-bordered rounded-xl" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
+                <select className="select select-bordered rounded-xl" value={formData.category} onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}>
                     <option value="classic">Classic</option>
                     <option value="premium">Premium</option>
                     <option value="combo">Combo</option>
+                    <option value="sides">Sides</option>
                     <option value="drinks">Drinks</option>
                 </select>
                 <div className="flex flex-col gap-2">
@@ -411,7 +420,7 @@ const MenuForm = ({ item, onCancel, onSuccess }) => {
             </div>
             <div className="modal-action">
                 <button type="button" onClick={onCancel} className="btn btn-ghost rounded-xl">Bekor qilish</button>
-                <button type="submit" disabled={submitting || uploading} className="btn btn-primary rounded-xl px-10">Saqlash</button>
+                <button type="submit" disabled={submitting || uploading} className="btn btn-primary rounded-xl px-10 shadow-lg shadow-indigo-100">Saqlash</button>
             </div>
         </form>
     );
