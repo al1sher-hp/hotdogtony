@@ -106,6 +106,10 @@ router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) 
         // Apply updates
         requestedUpdates.forEach(key => {
             if (allowedUpdates.includes(key)) {
+                // Only update password if it's not empty
+                if (key === 'password' && (!updates[key] || updates[key] === '')) {
+                    return;
+                }
                 userToUpdate[key] = updates[key];
             }
         });

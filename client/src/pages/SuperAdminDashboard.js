@@ -317,6 +317,10 @@ const UserForm = ({ item, onCancel, onSuccess }) => {
             if (item) {
                 // Strip fields that shouldn't be patched
                 const { _id, __v, createdAt, updatedAt, ...updateData } = formData;
+                // If editing and password is empty, don't send it
+                if (!updateData.password) {
+                    delete updateData.password;
+                }
                 await api.patch(`/users/${item._id}`, updateData);
             } else {
                 await api.post('/users', formData);
@@ -352,18 +356,18 @@ const UserForm = ({ item, onCancel, onSuccess }) => {
                     required
                 />
             </div>
-            {!item && (
-                <div className="form-control">
-                    <label className="label text-sm font-bold text-gray-600 uppercase">Parol</label>
-                    <input
-                        type="password"
-                        className="input input-bordered rounded-xl bg-gray-50 focus:bg-white"
-                        value={formData.password}
-                        onChange={e => setFormData({ ...formData, password: e.target.value })}
-                        required
-                    />
-                </div>
-            )}
+            <div className="form-control">
+                <label className="label text-sm font-bold text-gray-600 uppercase">
+                    Parol {item && <span className="text-xs font-normal lowercase">(o'zgartirish uchun kiriting)</span>}
+                </label>
+                <input
+                    type="password"
+                    className="input input-bordered rounded-xl bg-gray-50 focus:bg-white"
+                    value={formData.password}
+                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                    required={!item}
+                />
+            </div>
             <div className="form-control">
                 <label className="label text-sm font-bold text-gray-600 uppercase">Rol</label>
                 <select
@@ -389,9 +393,41 @@ const UserForm = ({ item, onCancel, onSuccess }) => {
 const MenuForm = ({ item, ingredients, onCancel, onSuccess }) => {
     const [formData, setFormData] = useState(item || { name: '', description: '', price: '', category: 'classic', image: '', ingredients: [] });
     const [submitting, setSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
+
+    const handleImageChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('Rasm hajmi juda katta (max 5MB)', 'error');
+            return;
+        }
+
+        setUploading(true);
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = async () => {
+                const base64Image = reader.result;
+                const response = await api.post('/menu/upload-image', { image: base64Image });
+                setFormData({ ...formData, image: response.data.imageUrl });
+                showToast('Rasm yuklandi', 'success');
+                setUploading(false);
+            };
+        } catch (error) {
+            console.error('Image upload error:', error);
+            showToast('Rasm yuklashda xatolik', 'error');
+            setUploading(false);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.image) {
+            showToast('Rasm yuklash shart', 'error');
+            return;
+        }
         setSubmitting(true);
         try {
             if (item) {
@@ -436,13 +472,25 @@ const MenuForm = ({ item, ingredients, onCancel, onSuccess }) => {
                     </select>
                 </div>
                 <div className="form-control">
-                    <label className="label text-sm font-bold text-gray-600 uppercase">Rasm URL</label>
-                    <input type="text" className="input input-bordered rounded-xl" value={formData.image} onChange={e => setFormData({ ...formData, image: e.target.value })} required />
+                    <label className="label text-sm font-bold text-gray-600 uppercase">Mahsulot Rasmi</label>
+                    <div className="flex flex-col gap-2">
+                        {formData.image && (
+                            <img src={formData.image} alt="Preview" className="w-20 h-20 object-cover rounded-xl border-2 border-indigo-100" />
+                        )}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            className="file-input file-input-bordered file-input-primary w-full max-w-xs rounded-xl"
+                            onChange={handleImageChange}
+                            disabled={uploading}
+                        />
+                        {uploading && <span className="text-xs text-indigo-500 animate-pulse">Rasm yuklanmoqda...</span>}
+                    </div>
                 </div>
             </div>
             <div className="modal-action">
                 <button type="button" onClick={onCancel} className="btn btn-ghost rounded-xl">Bekor qilish</button>
-                <button type="submit" disabled={submitting} className="btn btn-primary px-8 rounded-xl">
+                <button type="submit" disabled={submitting || uploading} className="btn btn-primary px-8 rounded-xl">
                     {submitting ? 'Saqlanmoqda...' : 'Saqlash'}
                 </button>
             </div>

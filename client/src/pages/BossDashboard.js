@@ -295,36 +295,130 @@ export default function BossDashboard() {
                         {modalType === 'employee' ? (
                             <form onSubmit={async (e) => {
                                 e.preventDefault();
-                                const data = {
-                                    name: e.target.name.value,
-                                    email: e.target.email.value,
-                                    role: 'employee'
-                                };
-                                if (!editItem) data.password = e.target.password.value;
+                                const name = e.target.name.value;
+                                const email = e.target.email.value;
+                                const password = e.target.password?.value;
+
                                 try {
                                     if (editItem) {
-                                        const { _id, __v, createdAt, updatedAt, ...updateData } = data;
+                                        const updateData = { name, email };
+                                        if (password) updateData.password = password;
                                         await api.patch(`/users/${editItem._id}`, updateData);
                                     } else {
-                                        await api.post('/users', data);
+                                        await api.post('/users', { name, email, password, role: 'employee' });
                                     }
-                                    showToast('Saqlandi'); setShowModal(false); fetchData();
-                                } catch (err) { showToast('Xatolik', 'error'); }
+                                    showToast('Saqlandi', 'success');
+                                    setShowModal(false);
+                                    fetchData();
+                                } catch (err) {
+                                    showToast(err.response?.data?.error || 'Xatolik', 'error');
+                                }
                             }} className="space-y-4">
-                                <input name="name" defaultValue={editItem?.name} placeholder="Ism" className="input input-bordered w-full rounded-xl" required />
-                                <input name="email" defaultValue={editItem?.email} placeholder="Email" className="input input-bordered w-full rounded-xl" required />
-                                {!editItem && <input name="password" placeholder="Parol" className="input input-bordered w-full rounded-xl" required />}
+                                <div className="form-control">
+                                    <label className="label text-xs font-bold text-gray-400 uppercase">F.I.SH.</label>
+                                    <input name="name" defaultValue={editItem?.name} className="input input-bordered w-full rounded-xl" required />
+                                </div>
+                                <div className="form-control">
+                                    <label className="label text-xs font-bold text-gray-400 uppercase">Email</label>
+                                    <input name="email" type="email" defaultValue={editItem?.email} className="input input-bordered w-full rounded-xl" required />
+                                </div>
+                                <div className="form-control">
+                                    <label className="label text-xs font-bold text-gray-400 uppercase">Parol {editItem && "(o'zgartirish uchun)"}</label>
+                                    <input name="password" type="password" className="input input-bordered w-full rounded-xl" required={!editItem} />
+                                </div>
                                 <div className="modal-action">
                                     <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost rounded-xl">Bekor qilish</button>
-                                    <button type="submit" className="btn btn-primary rounded-xl px-10">Saqlash</button>
+                                    <button type="submit" className="btn btn-primary rounded-xl px-10 shadow-lg shadow-indigo-100">Saqlash</button>
                                 </div>
                             </form>
                         ) : (
-                            <p className="text-center italic text-gray-400 py-10">Menu tahrirlash qismi super admin tomonidan amalga oshiriladi yoki keyingi yangilanishda qo'shiladi.</p>
+                            <MenuForm
+                                item={editItem}
+                                onCancel={() => setShowModal(false)}
+                                onSuccess={() => { setShowModal(false); fetchData(); }}
+                            />
                         )}
                     </div>
                 </div>
             )}
         </div>
+    );
+}
+
+// Add the same MenuForm component or a slightly modified one
+const MenuForm = ({ item, onCancel, onSuccess }) => {
+    const [formData, setFormData] = useState(item || { name: '', description: '', price: '', category: 'classic', image: '', ingredients: [] });
+    const [submitting, setSubmitting] = useState(false);
+    const [uploading, setUploading] = useState(false);
+
+    const handleImageChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = async () => {
+                const response = await api.post('/menu/upload-image', { image: reader.result });
+                setFormData({ ...formData, image: response.data.imageUrl });
+                showToast('Rasm yuklandi', 'success');
+                setUploading(false);
+            };
+        } catch (error) {
+            showToast('Rasm yuklashda xatolik', 'error');
+            setUploading(false);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!formData.image) return showToast('Rasm yuklash shart', 'error');
+        setSubmitting(true);
+        try {
+            if (item) {
+                const { _id, __v, createdAt, updatedAt, ...updateData } = formData;
+                await api.patch(`/menu/${item._id}`, updateData);
+            } else {
+                await api.post('/menu', formData);
+            }
+            showToast('Saqlandi', 'success');
+            onSuccess();
+        } catch (error) {
+            showToast('Xatolik', 'error');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+                <input placeholder="Nomi" className="input input-bordered rounded-xl" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                <input type="number" placeholder="Narxi" className="input input-bordered rounded-xl" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+            </div>
+            <textarea placeholder="Tavsif" className="textarea textarea-bordered rounded-xl w-full h-24" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} required />
+            <div className="grid grid-cols-2 gap-4">
+                <select className="select select-bordered rounded-xl" value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
+                    <option value="classic">Classic</option>
+                    <option value="premium">Premium</option>
+                    <option value="combo">Combo</option>
+                    <option value="drinks">Drinks</option>
+                </select>
+                <div className="flex flex-col gap-2">
+                    {formData.image && <img src={formData.image} alt="Preview" className="w-12 h-12 object-cover rounded-lg" />}
+                    <input type="file" accept="image/*" className="file-input file-input-bordered file-input-xs rounded-lg" onChange={handleImageChange} disabled={uploading} />
+                </div>
+            </div>
+            <div className="modal-action">
+                <button type="button" onClick={onCancel} className="btn btn-ghost rounded-xl">Bekor qilish</button>
+                <button type="submit" disabled={submitting || uploading} className="btn btn-primary rounded-xl px-10">Saqlash</button>
+            </div>
+        </form>
+    );
+};
+                    </div >
+                </div >
+            )}
+        </div >
     );
 }
