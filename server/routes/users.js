@@ -85,16 +85,26 @@ router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
     } catch (error) {
         console.error('Create user error:', error);
 
+        if (error.code === 11000) {
+            const field = Object.keys(error.keyPattern)[0];
+            const value = error.keyValue[field];
+
+            // Try to find who is using this email to give a better error
+            const culprit = await User.findOne({ email: value });
+            if (culprit) {
+                return res.status(400).json({
+                    error: `Bu ${field} allaqachon band. Egasi: "${culprit.name}", Roli: "${culprit.role}".`
+                });
+            }
+            return res.status(400).json({ error: `Bu ${field} allaqachon ro'yxatdan o'tgan.` });
+        }
+
         if (error.name === 'ValidationError') {
             const messages = Object.values(error.errors).map(val => val.message);
             return res.status(400).json({ error: messages.join(', ') });
         }
 
-        if (error.code === 11000) {
-            return res.status(400).json({ error: 'Bu email allaqachon ro\'yxatdan o\'tgan' });
-        }
-
-        res.status(500).json({ error: 'Foydalanuvchini yaratishda xatolik yuz berdi' });
+        res.status(500).json({ error: 'Foydalanuvchini yaratishda xatolik: ' + error.message });
     }
 });
 

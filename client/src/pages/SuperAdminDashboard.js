@@ -1,44 +1,34 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
-import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { FiUsers, FiShoppingBag, FiBox, FiMessageSquare, FiTrash2, FiPlus, FiEdit2, FiCheck } from 'react-icons/fi';
+import { showToast } from '../components/shared/Toast';
+import { FiUsers, FiShoppingBag, FiBox, FiMessageSquare, FiLogOut, FiTrash2, FiShield } from 'react-icons/fi';
 
 export default function SuperAdminDashboard() {
     const [activeTab, setActiveTab] = useState('users');
-    const { logout } = useAuth();
+    const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // Data states
-    const [users, setUsers] = useState([]);
-    const [menuItems, setMenuItems] = useState([]);
-    const [ingredients, setIngredients] = useState([]);
-    const [feedback, setFeedback] = useState([]);
-
-    // Modal states
-    const [showModal, setShowModal] = useState(false);
-    const [modalType, setModalType] = useState(''); // 'user', 'menu'
-    const [editItem, setEditItem] = useState(null);
+    const { logout } = useAuth();
 
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            if (activeTab === 'users') {
-                const res = await api.get('/users');
-                setUsers(res.data.users);
-            } else if (activeTab === 'menu') {
-                const res = await api.get('/menu');
-                setMenuItems(res.data.menuItems);
-            } else if (activeTab === 'ingredients') {
-                const res = await api.get('/ingredients');
-                setIngredients(res.data.ingredients);
-            } else if (activeTab === 'feedback') {
-                const res = await api.get('/feedback');
-                setFeedback(res.data.feedbacks);
+            let endpoint = '';
+            switch (activeTab) {
+                case 'users': endpoint = '/users'; break;
+                case 'orders': endpoint = '/orders'; break;
+                case 'menu': endpoint = '/menu'; break;
+                case 'ingredients': endpoint = '/ingredients'; break;
+                case 'feedback': endpoint = '/feedback'; break;
+                default: endpoint = '/users';
             }
+            const res = await api.get(endpoint);
+            // Handle different response structures
+            const result = res.data.users || res.data.orders || res.data.menuItems || res.data.ingredients || res.data.feedbacks || [];
+            setData(result);
         } catch (error) {
-            showToast('Ma\'lumotlarni yuklashda xatolik', 'error');
+            showToast('Ma\'lumotlarni yuklab bo\'lmadi', 'error');
         } finally {
             setLoading(false);
         }
@@ -48,460 +38,153 @@ export default function SuperAdminDashboard() {
         fetchData();
     }, [fetchData]);
 
-    const handleDelete = async (type, id) => {
-        if (!window.confirm('Haqiqatdan ham o\'chirmoqchimisiz?')) return;
+    const handleDelete = async (id) => {
+        if (!window.confirm('Haqiqatdan ham o\'chirmoqchimisiz? Ushbu amal ortga qaytarilmaydi!')) return;
 
         try {
-            await api.delete(`/${type}/${id}`);
+            let endpoint = '';
+            switch (activeTab) {
+                case 'users': endpoint = `/users/${id}`; break;
+                case 'orders': endpoint = `/orders/${id}`; break;
+                case 'menu': endpoint = `/menu/${id}`; break;
+                case 'ingredients': endpoint = `/ingredients/${id}`; break;
+                case 'feedback': endpoint = `/feedback/${id}`; break;
+                default: return;
+            }
+            await api.delete(endpoint);
             showToast('Muvaffaqiyatli o\'chirildi', 'success');
             fetchData();
         } catch (error) {
-            showToast('O\'chirishda xatolik', 'error');
+            showToast(error.response?.data?.error || 'O\'chirishda xatolik', 'error');
         }
     };
 
     return (
-        <div className="min-h-screen bg-base-200">
-            {/* Header */}
-            <div className="navbar bg-gradient-to-r from-purple-800 to-indigo-900 text-white shadow-lg sticky top-0 z-50">
-                <div className="flex-1 px-4">
-                    <h1 className="text-xl md:text-2xl font-bold flex items-center gap-2">
-                        <span className="bg-white text-indigo-900 p-1 rounded-lg">🔐</span>
-                        Super Admin Panel
+        <div className="min-h-screen bg-slate-900 text-slate-100">
+            {/* Navbar */}
+            <div className="navbar bg-slate-800 border-b border-slate-700 px-6">
+                <div className="flex-1">
+                    <h1 className="text-xl font-bold flex items-center gap-2">
+                        <FiShield className="text-red-500" />
+                        <span>SUPER ADMIN</span>
+                        <span className="badge badge-error badge-sm text-[10px]">FULL ACCESS</span>
                     </h1>
                 </div>
-                <div className="flex-none gap-2 px-4">
-                    <button onClick={logout} className="btn btn-ghost btn-sm border border-white/20">Chiqish</button>
-                </div>
+                <button onClick={logout} className="btn btn-ghost btn-sm gap-2">
+                    <FiLogOut /> Chiqish
+                </button>
             </div>
 
             <div className="container mx-auto px-4 py-8">
-                {/* Tabs Navigation */}
-                <div className="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm">
+                {/* Tabs */}
+                <div className="flex flex-wrap gap-2 mb-8">
                     {[
-                        { id: 'users', label: 'Xodimlar', icon: <FiUsers /> },
-                        { id: 'menu', label: 'Menyu', icon: <FiShoppingBag /> },
-                        { id: 'ingredients', label: 'Masalliqlar', icon: <FiBox /> },
-                        { id: 'feedback', label: 'Fikr-mulohaza', icon: <FiMessageSquare /> }
+                        { id: 'users', label: 'Barcha Foydalanuvchilar', icon: <FiUsers /> },
+                        { id: 'orders', label: 'Buyurtmalar', icon: <FiShoppingBag /> },
+                        { id: 'menu', label: 'Menu', icon: <FiBox /> },
+                        { id: 'ingredients', label: 'Zaxira', icon: <FiBox /> },
+                        { id: 'feedback', label: 'Izohlar', icon: <FiMessageSquare /> },
                     ].map(tab => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
-                            className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all font-medium ${activeTab === tab.id
-                                ? 'bg-indigo-600 text-white shadow-md scale-105'
-                                : 'hover:bg-indigo-50 text-gray-600'
-                                }`}
+                            className={`btn btn-sm gap-2 rounded-lg ${activeTab === tab.id ? 'btn-error' : 'btn-ghost bg-slate-800'}`}
                         >
                             {tab.icon} {tab.label}
                         </button>
                     ))}
                 </div>
 
-                {/* Main Content Area */}
-                <div className="bg-white rounded-3xl shadow-xl overflow-hidden min-h-[60vh] border border-gray-100">
-                    <div className="p-6 md:p-8">
-                        <div className="flex justify-between items-center mb-8">
-                            <h2 className="text-2xl font-bold text-gray-800 capitalize">{activeTab} Boshqaruvi</h2>
-                            {activeTab !== 'feedback' && (
-                                <button
-                                    onClick={() => {
-                                        setModalType(activeTab === 'users' ? 'user' : 'menu');
-                                        setEditItem(null);
-                                        setShowModal(true);
-                                    }}
-                                    className="btn btn-primary rounded-xl gap-2 shadow-lg shadow-indigo-200"
-                                >
-                                    <FiPlus /> Qo'shish
-                                </button>
-                            )}
-                        </div>
+                <div className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                    <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+                        <h2 className="text-xl font-bold capitalize">{activeTab} ro'yxati</h2>
+                        <span className="text-sm text-slate-400">Jami: {data.length} ta</span>
+                    </div>
 
-                        {loading ? (
-                            <div className="py-20 flex flex-col items-center gap-4">
-                                <LoadingSpinner size="lg" />
-                                <p className="text-gray-400">Ma'lumotlar yuklanmoqda...</p>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                {activeTab === 'users' && <UsersTable users={users} onDelete={handleDelete} onEdit={(u) => { setEditItem(u); setModalType('user'); setShowModal(true); }} />}
-                                {activeTab === 'menu' && <MenuTable items={menuItems} onDelete={handleDelete} onEdit={(i) => { setEditItem(i); setModalType('menu'); setShowModal(true); }} />}
-                                {activeTab === 'ingredients' && <IngredientsTable items={ingredients} fetchData={fetchData} />}
-                                {activeTab === 'feedback' && <FeedbackList feedback={feedback} />}
-                            </div>
-                        )}
+                    {loading ? (
+                        <div className="p-20 flex justify-center"><LoadingSpinner /></div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="table w-full">
+                                <thead className="bg-slate-900/50">
+                                    <tr>
+                                        {activeTab === 'users' && <><th>Ism</th><th>Email</th><th>Rol</th></>}
+                                        {activeTab === 'orders' && <><th>#</th><th>Xaridor</th><th>Summa</th><th>Holat</th></>}
+                                        {activeTab === 'menu' && <><th>Nomi</th><th>Narxi</th><th>Kategoriya</th></>}
+                                        {activeTab === 'ingredients' && <><th>Nomi</th><th>Miqdor</th><th>Birlik</th></>}
+                                        {activeTab === 'feedback' && <><th>Reyting</th><th>Izoh</th><th>Buyurtma</th></>}
+                                        <th className="text-right">Amallar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data.length === 0 ? (
+                                        <tr><td colSpan="5" className="text-center py-10 text-slate-500">Ma'lumot topilmadi</td></tr>
+                                    ) : (
+                                        data.map((item) => (
+                                            <tr key={item._id} className="hover:bg-slate-700/30 transition-colors">
+                                                {activeTab === 'users' && (
+                                                    <>
+                                                        <td className="font-bold">{item.name}</td>
+                                                        <td className="text-slate-400">{item.email}</td>
+                                                        <td><span className={`badge badge-sm ${item.role === 'super-admin' ? 'badge-error' : item.role === 'boss' ? 'badge-warning' : 'badge-info'}`}>{item.role}</span></td>
+                                                    </>
+                                                )}
+                                                {activeTab === 'orders' && (
+                                                    <>
+                                                        <td className="font-mono text-red-400">#{item.dailyNumber}</td>
+                                                        <td>{item.customerName}</td>
+                                                        <td className="font-bold">{item.totalPrice?.toLocaleString()} so'm</td>
+                                                        <td><span className="badge badge-ghost badge-sm">{item.status}</span></td>
+                                                    </>
+                                                )}
+                                                {activeTab === 'menu' && (
+                                                    <>
+                                                        <td className="font-bold">{item.name}</td>
+                                                        <td>{item.price?.toLocaleString()} so'm</td>
+                                                        <td>{item.category}</td>
+                                                    </>
+                                                )}
+                                                {activeTab === 'ingredients' && (
+                                                    <>
+                                                        <td className="font-bold">{item.name}</td>
+                                                        <td className={item.currentStock <= item.minStock ? 'text-red-400 font-bold' : ''}>{item.currentStock}</td>
+                                                        <td>{item.unit}</td>
+                                                    </>
+                                                )}
+                                                {activeTab === 'feedback' && (
+                                                    <>
+                                                        <td className="text-yellow-400 font-bold">⭐ {item.rating}</td>
+                                                        <td className="max-w-xs truncate">{item.comment}</td>
+                                                        <td>#{item.order?.dailyNumber}</td>
+                                                    </>
+                                                )}
+                                                <td className="text-right">
+                                                    <button
+                                                        onClick={() => handleDelete(item._id)}
+                                                        disabled={item.role === 'super-admin'} // O'zini o'zi o'chira olmaydi
+                                                        className="btn btn-ghost btn-xs text-red-500 hover:bg-red-500/10"
+                                                    >
+                                                        <FiTrash2 />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
+
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="alert alert-warning bg-amber-900/20 border-amber-500/50 text-amber-200">
+                        <div>
+                            <h3 className="font-bold">Diqqat!</h3>
+                            <div className="text-xs">Super Admin barcha ma'lumotlarni o'chirish huquqiga ega. Ehtiyot bo'ling.</div>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            {/* Modals */}
-            {showModal && (
-                <div className="modal modal-open bg-black/50 backdrop-blur-sm">
-                    <div className="modal-box max-w-2xl rounded-3xl p-8 border border-white/20">
-                        <h3 className="font-bold text-2xl mb-6 flex items-center gap-2">
-                            {editItem ? <FiEdit2 className="text-indigo-600" /> : <FiPlus className="text-green-600" />}
-                            {editItem ? 'Tahrirlash' : 'Yangi qo\'shish'}
-                        </h3>
-
-                        {modalType === 'user' && (
-                            <UserForm
-                                key={editItem?._id || 'new-user'}
-                                item={editItem}
-                                onCancel={() => setShowModal(false)}
-                                onSuccess={() => { setShowModal(false); fetchData(); }}
-                            />
-                        )}
-
-                        {modalType === 'menu' && (
-                            <MenuForm
-                                key={editItem?._id || 'new-menu'}
-                                item={editItem}
-                                ingredients={ingredients}
-                                onCancel={() => setShowModal(false)}
-                                onSuccess={() => { setShowModal(false); fetchData(); }}
-                            />
-                        )}
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
-
-const UsersTable = ({ users, onDelete, onEdit }) => (
-    <table className="table w-full">
-        <thead>
-            <tr className="bg-indigo-50/50">
-                <th className="rounded-l-xl">Ism</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th className="rounded-r-xl">Amallar</th>
-            </tr>
-        </thead>
-        <tbody>
-            {users.map(user => (
-                <tr key={user._id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50">
-                    <td className="font-semibold text-gray-900">{user.name}</td>
-                    <td className="text-gray-600">{user.email}</td>
-                    <td>
-                        <span className={`badge badge-ghost capitalize font-medium ${user.role === 'super-admin' ? 'bg-purple-100 text-purple-700' :
-                            user.role === 'boss' ? 'bg-blue-100 text-blue-700' :
-                                'bg-green-100 text-green-700'
-                            }`}>
-                            {user.role}
-                        </span>
-                    </td>
-                    <td className="flex gap-2">
-                        <button onClick={() => onEdit(user)} className="btn btn-ghost btn-xs text-indigo-600 hover:bg-indigo-50 rounded-lg"><FiEdit2 /></button>
-                        <button onClick={() => onDelete('users', user._id)} className="btn btn-ghost btn-xs text-red-400 hover:bg-red-50 rounded-lg"><FiTrash2 /></button>
-                    </td>
-                </tr>
-            ))}
-        </tbody>
-    </table>
-);
-
-const MenuTable = ({ items, onDelete, onEdit }) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map(item => (
-            <div key={item._id} className="card bg-gray-50/50 hover:bg-white border border-gray-100 hover:border-indigo-100 transition-all hover:shadow-xl hover:shadow-indigo-100/30 group">
-                <figure className="relative h-48 overflow-hidden m-4 rounded-2xl">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute top-2 right-2 flex gap-1">
-                        <button onClick={() => onEdit(item)} className="btn btn-circle btn-sm bg-white/90 border-0 text-indigo-600 hover:bg-indigo-600 hover:text-white shadow-sm"><FiEdit2 size={14} /></button>
-                        <button onClick={() => onDelete('menu', item._id)} className="btn btn-circle btn-sm bg-white/90 border-0 text-red-500 hover:bg-red-500 hover:text-white shadow-sm"><FiTrash2 size={14} /></button>
-                    </div>
-                </figure>
-                <div className="card-body p-6 pt-0">
-                    <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-gray-800">{item.name}</h3>
-                        <span className="text-indigo-600 font-bold">{item.price?.toLocaleString()} s.</span>
-                    </div>
-                    <p className="text-gray-500 text-sm line-clamp-2">{item.description}</p>
-                    <div className="card-actions mt-4">
-                        <span className="badge badge-outline border-indigo-200 text-indigo-400 text-xs px-3">{item.category}</span>
-                    </div>
-                </div>
-            </div>
-        ))}
-    </div>
-);
-
-const IngredientsTable = ({ items, fetchData }) => {
-    const [updating, setUpdating] = useState(null);
-
-    const updateStock = async (id, currentStock) => {
-        setUpdating(id);
-        try {
-            await api.patch(`/ingredients/${id}`, { currentStock });
-            showToast('Zaxira yangilandi', 'success');
-            fetchData();
-        } catch (error) {
-            showToast('Yangilashda xatolik', 'error');
-        } finally {
-            setUpdating(null);
-        }
-    };
-
-    return (
-        <table className="table w-full">
-            <thead>
-                <tr className="bg-indigo-50/50">
-                    <th className="rounded-l-xl">Nomi</th>
-                    <th>Joriy zaxira</th>
-                    <th>Holati</th>
-                    <th className="rounded-r-xl">Harakat</th>
-                </tr>
-            </thead>
-            <tbody>
-                {items.map(ing => {
-                    const status = ing.currentStock <= ing.minStock ? 'tugayapti' : 'yetarli';
-                    return (
-                        <tr key={ing._id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50">
-                            <td className="font-semibold text-gray-900">{ing.name} ({ing.unit})</td>
-                            <td>
-                                <input
-                                    type="number"
-                                    defaultValue={ing.currentStock}
-                                    onBlur={(e) => updateStock(ing._id, e.target.value)}
-                                    className="input input-sm input-bordered w-24 rounded-lg focus:border-indigo-500 focus:outline-none"
-                                    disabled={updating === ing._id}
-                                />
-                            </td>
-                            <td>
-                                <span className={`badge badge-sm font-medium ${status === 'tugayapti' ? 'badge-error' : 'badge-success'}`}>
-                                    {status}
-                                </span>
-                            </td>
-                            <td>
-                                {updating === ing._id ? <LoadingSpinner size="sm" /> : <FiCheck className="text-green-500" />}
-                            </td>
-                        </tr>
-                    );
-                })}
-            </tbody>
-        </table>
-    );
-};
-
-const FeedbackList = ({ feedback }) => (
-    <div className="space-y-4">
-        {feedback.map(f => (
-            <div key={f._id} className="p-6 bg-gray-50/50 rounded-2xl border border-gray-100 flex gap-4 hover:bg-white transition-colors shadow-sm hover:shadow-md">
-                <div className="avatar placeholder h-fit">
-                    <div className="bg-indigo-100 text-indigo-600 rounded-xl w-12">
-                        <span className="text-xl font-bold">⭐</span>
-                    </div>
-                </div>
-                <div className="flex-1">
-                    <div className="flex justify-between items-start mb-2">
-                        <div>
-                            <span className="font-bold text-lg text-indigo-600">{f.rating}/5</span>
-                            <p className="text-xs text-gray-400">{new Date(f.createdAt).toLocaleString('uz-UZ')}</p>
-                        </div>
-                        <div className="badge badge-ghost border-0 text-gray-400 text-xs">Buyurtma #{f.order?.dailyNumber}</div>
-                    </div>
-                    <p className="text-gray-700 italic">"{f.comment || 'Izoh qoldirilmagan'}"</p>
-                </div>
-            </div>
-        ))}
-    </div>
-);
-
-// Forms
-const UserForm = ({ item, onCancel, onSuccess }) => {
-    const [formData, setFormData] = useState(item || { name: '', email: '', password: '', role: 'employee' });
-    const [submitting, setSubmitting] = useState(false);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSubmitting(true);
-        try {
-            if (item) {
-                // Strip fields that shouldn't be patched
-                const { _id, __v, createdAt, updatedAt, ...updateData } = formData;
-                // If editing and password is empty, don't send it
-                if (!updateData.password) {
-                    delete updateData.password;
-                }
-                await api.patch(`/users/${item._id}`, updateData);
-            } else {
-                await api.post('/users', formData);
-            }
-            showToast('Foydalanuvchi saqlandi', 'success');
-            onSuccess();
-        } catch (error) {
-            showToast(error.response?.data?.error || 'Xatolik', 'error');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="form-control">
-                <label className="label text-sm font-bold text-gray-600 uppercase">Ism-sharif</label>
-                <input
-                    type="text"
-                    className="input input-bordered rounded-xl bg-gray-50 focus:bg-white"
-                    value={formData.name}
-                    onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    required
-                />
-            </div>
-            <div className="form-control">
-                <label className="label text-sm font-bold text-gray-600 uppercase">Email</label>
-                <input
-                    type="email"
-                    className="input input-bordered rounded-xl bg-gray-50 focus:bg-white"
-                    value={formData.email}
-                    onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                />
-            </div>
-            <div className="form-control">
-                <label className="label text-sm font-bold text-gray-600 uppercase">
-                    Parol {item && <span className="text-xs font-normal lowercase">(o'zgartirish uchun kiriting)</span>}
-                </label>
-                <input
-                    type="password"
-                    className="input input-bordered rounded-xl bg-gray-50 focus:bg-white"
-                    value={formData.password}
-                    onChange={e => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    required={!item}
-                />
-            </div>
-            <div className="form-control">
-                <label className="label text-sm font-bold text-gray-600 uppercase">Rol</label>
-                <select
-                    className="select select-bordered rounded-xl bg-gray-50 focus:bg-white"
-                    value={formData.role}
-                    onChange={e => setFormData(prev => ({ ...prev, role: e.target.value }))}
-                >
-                    <option value="employee">Hodim</option>
-                    <option value="boss">Boss</option>
-                    <option value="super-admin">Super Admin</option>
-                </select>
-            </div>
-            <div className="modal-action">
-                <button type="button" onClick={onCancel} className="btn btn-ghost rounded-xl">Bekor qilish</button>
-                <button type="submit" disabled={submitting} className="btn btn-primary px-8 rounded-xl shadow-lg shadow-indigo-100">
-                    {submitting ? 'Saqlanmoqda...' : 'Saqlash'}
-                </button>
-            </div>
-        </form>
-    );
-};
-
-const MenuForm = ({ item, ingredients, onCancel, onSuccess }) => {
-    const [formData, setFormData] = useState(item || { name: '', description: '', price: '', category: 'classic', image: '', ingredients: [] });
-    const [submitting, setSubmitting] = useState(false);
-    const [uploading, setUploading] = useState(false);
-
-    const handleImageChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-            showToast('Rasm hajmi juda katta (max 5MB)', 'error');
-            return;
-        }
-
-        setUploading(true);
-        try {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = async () => {
-                try {
-                    const base64Image = reader.result;
-                    const response = await api.post('/menu/upload-image', { image: base64Image });
-                    setFormData(prev => ({ ...prev, image: response.data.imageUrl }));
-                    showToast('Rasm yuklandi', 'success');
-                } catch (err) {
-                    showToast('Rasm yuklashda xatolik: ' + (err.response?.data?.error || err.message), 'error');
-                } finally {
-                    setUploading(false);
-                }
-            };
-        } catch (error) {
-            console.error('Image upload error:', error);
-            showToast('Rasm yuklashda xatolik', 'error');
-            setUploading(false);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!formData.image) {
-            showToast('Rasm yuklash shart', 'error');
-            return;
-        }
-        setSubmitting(true);
-        try {
-            if (item) {
-                const { _id, __v, createdAt, updatedAt, ...updateData } = formData;
-                await api.patch(`/menu/${item._id}`, updateData);
-            } else {
-                await api.post('/menu', formData);
-            }
-            showToast('Mahsulot saqlandi', 'success');
-            onSuccess();
-        } catch (error) {
-            showToast('Xatolik', 'error');
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="form-control">
-                    <label className="label text-sm font-bold text-gray-600 uppercase">Nomi</label>
-                    <input type="text" className="input input-bordered rounded-xl" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} required />
-                </div>
-                <div className="form-control">
-                    <label className="label text-sm font-bold text-gray-600 uppercase">Narxi</label>
-                    <input type="number" className="input input-bordered rounded-xl" value={formData.price} onChange={e => setFormData(prev => ({ ...prev, price: e.target.value }))} required />
-                </div>
-            </div>
-            <div className="form-control">
-                <label className="label text-sm font-bold text-gray-600 uppercase">Tavsif</label>
-                <textarea className="textarea textarea-bordered rounded-xl h-24" value={formData.description} onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))} required />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="form-control">
-                    <label className="label text-sm font-bold text-gray-600 uppercase">Kategoriya</label>
-                    <select className="select select-bordered rounded-xl" value={formData.category} onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}>
-                        <option value="classic">Classic</option>
-                        <option value="premium">Premium</option>
-                        <option value="combo">Combo</option>
-                        <option value="sides">Sides</option>
-                        <option value="drinks">Drinks</option>
-                    </select>
-                </div>
-                <div className="form-control">
-                    <label className="label text-sm font-bold text-gray-600 uppercase">Mahsulot Rasmi</label>
-                    <div className="flex flex-col gap-2">
-                        {formData.image && (
-                            <img src={formData.image} alt="Preview" className="w-20 h-20 object-cover rounded-xl border-2 border-indigo-100" />
-                        )}
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="file-input file-input-bordered file-input-primary w-full max-w-xs rounded-xl"
-                            onChange={handleImageChange}
-                            disabled={uploading}
-                        />
-                        {uploading && <span className="text-xs text-indigo-500 animate-pulse">Rasm yuklanmoqda...</span>}
-                    </div>
-                </div>
-            </div>
-            <div className="modal-action">
-                <button type="button" onClick={onCancel} className="btn btn-ghost rounded-xl">Bekor qilish</button>
-                <button type="submit" disabled={submitting || uploading} className="btn btn-primary px-8 rounded-xl">
-                    {submitting ? 'Saqlanmoqda...' : 'Saqlash'}
-                </button>
-            </div>
-        </form>
-    );
-};
