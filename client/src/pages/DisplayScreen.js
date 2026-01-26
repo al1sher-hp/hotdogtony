@@ -47,10 +47,10 @@ export default function DisplayScreen() {
             setReady(prev => [order, ...prev.filter(o => o._id !== order._id)]);
             playSound();
 
-            // Remove from ready after 5 minutes
+            // Remove from ready after 60 seconds
             setTimeout(() => {
                 setReady(prev => prev.filter(o => o._id !== order._id));
-            }, 300000);
+            }, 60000);
         });
 
         socket.on('newOrder', (order) => {

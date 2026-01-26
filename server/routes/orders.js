@@ -242,9 +242,22 @@ router.post('/verify-qr', auth, roleCheck(['employee', 'boss', 'super-admin']), 
             return res.status(400).json({ error: 'Invalid QR code' });
         }
 
+        // If order is pending, automatically confirm it and set to preparing
+        if (order.status === 'pending') {
+            order.status = 'preparing';
+            order.confirmedAt = new Date();
+            await order.save();
+
+            // Emit socket event for real-time updates
+            if (req.app.get('io')) {
+                req.app.get('io').emit('orderUpdated', order);
+            }
+        }
+
         res.json({
             order,
-            valid: true
+            valid: true,
+            statusChanged: true
         });
     } catch (error) {
         console.error('Verify QR error:', error);
