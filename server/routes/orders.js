@@ -83,6 +83,35 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Get orders for display screen (PUBLIC - no auth required)
+router.get('/display', async (req, res) => {
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const preparingOrders = await Order.find({
+            status: 'preparing',
+            createdAt: { $gte: today }
+        })
+            .select('dailyNumber customerName status')
+            .sort({ createdAt: -1 })
+            .limit(20);
+
+        const readyOrders = await Order.find({
+            status: 'ready',
+            createdAt: { $gte: today }
+        })
+            .select('dailyNumber customerName status')
+            .sort({ readyAt: -1 })
+            .limit(20);
+
+        res.json({ preparing: preparingOrders, ready: readyOrders });
+    } catch (error) {
+        console.error('Get display orders error:', error);
+        res.status(500).json({ error: 'Failed to get orders' });
+    }
+});
+
 // Get all orders (role-based)
 router.get('/', auth, async (req, res) => {
     try {
