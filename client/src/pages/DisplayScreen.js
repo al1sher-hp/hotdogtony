@@ -36,7 +36,7 @@ export default function DisplayScreen() {
             if (order.status === 'preparing') {
                 setPreparing(prev => [order, ...prev.filter(o => o._id !== order._id)]);
                 setReady(prev => prev.filter(o => o._id !== order._id));
-            } else if (order.status === 'completed') {
+            } else if (order.status === 'completed' || order.status === 'cancelled') {
                 setPreparing(prev => prev.filter(o => o._id !== order._id));
                 setReady(prev => prev.filter(o => o._id !== order._id));
             }

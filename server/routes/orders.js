@@ -49,26 +49,27 @@ router.post('/', async (req, res) => {
 
         const dailyNumber = dailyOrderCount + 1;
 
-        // Create temporary order to get ID for QR
-        const tempOrder = new Order({
+        // 1. Generate a manual ID first
+        const orderId = new (require('mongoose').Types.ObjectId)();
+
+        // 2. Generate QR code with this ID
+        const { qrCode, qrCodeDataURL } = await (require('../utils/qrGenerator')).generateOrderQR(orderId);
+
+        // 3. Create final order object
+        const order = new Order({
+            _id: orderId,
             customerName,
-            customerEmail,
+            customerEmail: customerEmail || undefined,
             items: orderItems,
             totalPrice,
             dailyNumber,
-            qrCode: 'temp'
+            qrCode: qrCode // Use the real unique code from the start
         });
 
-        // Generate QR code
-        const { qrCode, qrCodeDataURL } = await generateOrderQR(tempOrder._id);
-
-        tempOrder.qrCode = qrCode;
-        const order = await tempOrder.save();
-
-        // Populate menu items
+        await order.save();
         await order.populate('items.menuItem');
 
-        // Emit socket event for new order
+        // Emit socket event for new order (only for employees, not display)
         if (req.app.get('io')) {
             req.app.get('io').emit('newOrder', order);
         }
@@ -78,11 +79,10 @@ router.post('/', async (req, res) => {
             qrCodeDataURL
         });
     } catch (error) {
-        console.error('Create order error:', error);
+        console.error('Create order error details:', error);
         res.status(500).json({
             error: 'Failed to create order',
-            message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            message: error.message
         });
     }
 });
@@ -92,6 +92,8 @@ router.get('/display', async (req, res) => {
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
+        const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
 
         const preparingOrders = await Order.find({
             status: 'preparing',
@@ -103,11 +105,11 @@ router.get('/display', async (req, res) => {
 
         const readyOrders = await Order.find({
             status: 'ready',
-            createdAt: { $gte: today }
+            readyAt: { $gte: oneMinuteAgo } // Only show orders ready in the last 60 seconds
         })
-            .select('dailyNumber customerName status')
+            .select('dailyNumber customerName status readyAt')
             .sort({ readyAt: -1 })
-            .limit(20);
+            .limit(10);
 
         res.json({ preparing: preparingOrders, ready: readyOrders });
     } catch (error) {
