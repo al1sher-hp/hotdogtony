@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
 import socket from '../utils/socket';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { Html5QrcodeScanner } from 'html5-qrcode';
-import { FiClock, FiMaximize, FiCheckCircle, FiPlay, FiLogOut } from 'react-icons/fi';
+import { Html5Qrcode } from 'html5-qrcode';
+import { FiClock, FiMaximize, FiCheckCircle, FiPlay, FiLogOut, FiRefreshCw } from 'react-icons/fi';
 
 export default function EmployeeDashboard() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showScanner, setShowScanner] = useState(false);
+    const [scannerInstance, setScannerInstance] = useState(null);
     const { logout } = useAuth();
 
-    const fetchOrders = React.useCallback(async () => {
+    const fetchOrders = useCallback(async () => {
         try {
             const response = await api.get('/orders?status=pending,preparing,ready');
             setOrders(response.data.orders);
@@ -24,20 +25,52 @@ export default function EmployeeDashboard() {
         }
     }, []);
 
-    const onScanSuccess = React.useCallback(async (decodedText) => {
+    const onScanSuccess = useCallback(async (decodedText) => {
         try {
             const response = await api.post('/orders/verify-qr', { qrData: decodedText });
             showToast(`Buyurtma #${response.data.order.dailyNumber} tasdiqlandi va oshxonaga yuborildi`, 'success');
+
+            // Stop scanner after success
+            if (scannerInstance) {
+                await scannerInstance.stop();
+            }
             setShowScanner(false);
             fetchOrders();
         } catch (error) {
             showToast('QR kod xato yoki allaqachon tasdiqlangan', 'error');
         }
-    }, [fetchOrders]);
+    }, [fetchOrders, scannerInstance]);
 
-    const onScanError = React.useCallback((error) => {
-        // Ignore scan errors
-    }, []);
+    const startScanner = useCallback(async () => {
+        try {
+            const html5QrCode = new Html5Qrcode("qr-reader");
+            setScannerInstance(html5QrCode);
+
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            // Attempt to use the back camera (environment)
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                onScanSuccess
+            );
+        } catch (err) {
+            console.error("Camera start error:", err);
+            showToast("Kamerani ishga tushirib bo'lmadi. Kamera ruxsatini tekshiring.", "error");
+            setShowScanner(false);
+        }
+    }, [onScanSuccess]);
+
+    const stopScanner = useCallback(async () => {
+        if (scannerInstance && scannerInstance.isScanning) {
+            try {
+                await scannerInstance.stop();
+            } catch (err) {
+                console.error("Scanner stop error:", err);
+            }
+        }
+        setShowScanner(false);
+    }, [scannerInstance]);
 
     const confirmOrder = async (orderId) => {
         try {
@@ -61,7 +94,6 @@ export default function EmployeeDashboard() {
 
     const markCompleted = async (orderId) => {
         try {
-            // Usually we'd have a specific endpoint or generic update
             await api.patch(`/orders/${orderId}`, { status: 'completed' });
             showToast('Buyurtma yakunlandi', 'success');
             fetchOrders();
@@ -81,7 +113,6 @@ export default function EmployeeDashboard() {
             audio.play().catch(e => console.log('Audio error'));
         });
 
-        // Also listen for other updates to keep synced
         socket.on('orderUpdated', () => fetchOrders());
         socket.on('orderReady', () => fetchOrders());
 
@@ -92,21 +123,21 @@ export default function EmployeeDashboard() {
         };
     }, [fetchOrders]);
 
+    // Handle scanner UI lifecycle
     useEffect(() => {
         if (showScanner) {
-            const scanner = new Html5QrcodeScanner('qr-reader', {
-                fps: 10,
-                qrbox: 280,
-                videoConstraints: { facingMode: 'environment' }
-            });
-
-            scanner.render(onScanSuccess, onScanError);
-
-            return () => {
-                scanner.clear();
-            };
+            startScanner();
+        } else {
+            // Already handled by stopScanner function, 
+            // but just in case we close it via other means
         }
-    }, [showScanner, onScanSuccess, onScanError]);
+
+        return () => {
+            if (scannerInstance && scannerInstance.isScanning) {
+                scannerInstance.stop().catch(e => console.log(e));
+            }
+        };
+    }, [showScanner]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (loading) return <LoadingSpinner />;
 
@@ -121,7 +152,7 @@ export default function EmployeeDashboard() {
                 </div>
                 <div className="flex-none gap-4">
                     <button
-                        onClick={() => setShowScanner(!showScanner)}
+                        onClick={() => showScanner ? stopScanner() : setShowScanner(true)}
                         className={`btn btn-sm ${showScanner ? 'btn-error' : 'btn-accent text-indigo-950'} rounded-2xl gap-2 font-bold px-5 shadow-lg`}
                     >
                         <FiMaximize /> {showScanner ? 'Yopish' : 'Scan QR'}
@@ -134,8 +165,14 @@ export default function EmployeeDashboard() {
 
             <div className="container mx-auto px-4 py-10 max-w-[1400px]">
                 {showScanner && (
-                    <div className="card bg-indigo-900 shadow-2xl mb-10 p-6 rounded-[2.5rem] border-8 border-indigo-800 animate-in fade-in zoom-in duration-300">
-                        <div id="qr-reader" className="overflow-hidden rounded-[1.5rem] bg-white"></div>
+                    <div className="card bg-indigo-900 shadow-2xl mb-10 p-6 rounded-[2.5rem] border-8 border-indigo-800 animate-in fade-in zoom-in duration-300 relative overflow-hidden">
+                        <div className="absolute top-4 right-4 z-10">
+                            <button onClick={() => { stopScanner(); setTimeout(() => setShowScanner(true), 100); }} className="btn btn-circle btn-xs btn-ghost text-white border border-white/20">
+                                <FiRefreshCw />
+                            </button>
+                        </div>
+                        <div id="qr-reader" className="overflow-hidden rounded-[1.5rem] bg-black min-h-[300px]"></div>
+                        <p className="text-center text-white/50 text-xs mt-4 font-bold tracking-widest uppercase">Kamerani QR kodga qarating</p>
                     </div>
                 )}
 
