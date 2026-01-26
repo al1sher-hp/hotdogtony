@@ -20,10 +20,11 @@ import { QRCodeSVG } from 'qrcode.react';
 export function CustomerLanding() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [showEmailForm, setShowEmailForm] = useState(false);
+    const [authMode, setAuthMode] = useState('guest'); // 'guest', 'login', 'register'
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, login } = useAuth();
 
     // Auto-navigate if already logged in
     useEffect(() => {
@@ -41,19 +42,44 @@ export function CustomerLanding() {
         navigate('/menu');
     };
 
-    const handleSendMagicLink = async () => {
-        if (!name.trim() || !email.trim()) {
-            showToast('Iltimos, ism va emailni kiriting', 'error');
+    const handleLogin = async () => {
+        if (!email.trim() || !password.trim()) {
+            showToast('Email va parolni kiriting', 'error');
             return;
         }
 
         setLoading(true);
         try {
-            await api.post('/auth/send-magic-link', { name, email });
-            showToast('Email yuborildi! Inbox ni tekshiring', 'success');
-            setShowEmailForm(false);
+            const response = await api.post('/auth/customer-login', { email, password });
+            login(response.data.token, response.data.user);
+            showToast('Xush kelibsiz!', 'success');
+            navigate('/menu');
         } catch (error) {
-            showToast(error.response?.data?.error || 'Xatolik yuz berdi', 'error');
+            showToast(error.response?.data?.error || 'Kirishda xatolik', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRegister = async () => {
+        if (!name.trim() || !email.trim() || !password.trim()) {
+            showToast('Barcha maydonlarni to\'ldiring', 'error');
+            return;
+        }
+
+        if (password.length < 4) {
+            showToast('Parol kamida 4 ta belgidan iborat bo\'lishi kerak', 'error');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const response = await api.post('/auth/register', { name, email, password });
+            login(response.data.token, response.data.user);
+            showToast('Muvaffaqiyatli ro\'yxatdan o\'tdingiz!', 'success');
+            navigate('/menu');
+        } catch (error) {
+            showToast(error.response?.data?.error || 'Ro\'yxatdan o\'tishda xatolik', 'error');
         } finally {
             setLoading(false);
         }
@@ -68,7 +94,7 @@ export function CustomerLanding() {
                     <p className="text-white text-opacity-90">Mazali hot doglar buyurtma qiling!</p>
                 </div>
 
-                {!showEmailForm ? (
+                {authMode === 'guest' && (
                     <div className="space-y-4">
                         <input
                             type="text"
@@ -84,15 +110,72 @@ export function CustomerLanding() {
 
                         <div className="divider text-white">YOKI</div>
 
-                        <button
-                            onClick={() => setShowEmailForm(true)}
-                            className="btn btn-outline btn-block text-white hover:bg-white hover:text-primary"
-                        >
-                            Email bilan kirish
-                        </button>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => setAuthMode('login')}
+                                className="btn btn-outline btn-block text-white hover:bg-white hover:text-primary"
+                            >
+                                Kirish
+                            </button>
+                            <button
+                                onClick={() => setAuthMode('register')}
+                                className="btn btn-outline btn-block text-white hover:bg-white hover:text-primary"
+                            >
+                                Ro'yxatdan o'tish
+                            </button>
+                        </div>
                     </div>
-                ) : (
+                )}
+
+                {authMode === 'login' && (
                     <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white text-center">Hisobingizga kiring</h3>
+
+                        <input
+                            type="email"
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="input-modern"
+                        />
+
+                        <input
+                            type="password"
+                            placeholder="Parol"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="input-modern"
+                        />
+
+                        <button
+                            onClick={handleLogin}
+                            disabled={loading}
+                            className="btn-gradient w-full"
+                        >
+                            {loading ? 'Kirish...' : 'Kirish'}
+                        </button>
+
+                        <div className="flex justify-between">
+                            <button
+                                onClick={() => setAuthMode('guest')}
+                                className="btn btn-ghost btn-sm text-white"
+                            >
+                                Orqaga
+                            </button>
+                            <button
+                                onClick={() => setAuthMode('register')}
+                                className="btn btn-ghost btn-sm text-white"
+                            >
+                                Ro'yxatdan o'tish
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {authMode === 'register' && (
+                    <div className="space-y-4">
+                        <h3 className="text-xl font-bold text-white text-center">Yangi hisob yarating</h3>
+
                         <input
                             type="text"
                             placeholder="Ismingiz"
@@ -103,26 +186,42 @@ export function CustomerLanding() {
 
                         <input
                             type="email"
-                            placeholder="Email manzilingiz"
+                            placeholder="Email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="input-modern"
                         />
 
+                        <input
+                            type="password"
+                            placeholder="Parol (kamida 4 ta belgi)"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="input-modern"
+                        />
+
                         <button
-                            onClick={handleSendMagicLink}
+                            onClick={handleRegister}
                             disabled={loading}
                             className="btn-gradient w-full"
                         >
-                            {loading ? 'Yuborilmoqda...' : 'Magic Link Yuborish'}
+                            {loading ? 'Ro\'yxatdan o\'tish...' : 'Ro\'yxatdan o\'tish'}
                         </button>
 
-                        <button
-                            onClick={() => setShowEmailForm(false)}
-                            className="btn btn-ghost btn-block text-white"
-                        >
-                            Orqaga
-                        </button>
+                        <div className="flex justify-between">
+                            <button
+                                onClick={() => setAuthMode('guest')}
+                                className="btn btn-ghost btn-sm text-white"
+                            >
+                                Orqaga
+                            </button>
+                            <button
+                                onClick={() => setAuthMode('login')}
+                                className="btn btn-ghost btn-sm text-white"
+                            >
+                                Kirish
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
