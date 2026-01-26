@@ -91,15 +91,26 @@ mongoose.connect(process.env.MONGODB_URI, {
     .then(async () => {
         console.log('✅ Connected to MongoDB');
 
-        // FORCE SYNC INDEXES (Fixes the "Username/Email already exists" ghost issue)
+        // FORCE SYNC INDEXES (Fixes the "Username/Email/QR already exists" ghost issue)
         try {
             const User = require('./models/User');
-            // Check if collection exists before dropping
-            const collections = await mongoose.connection.db.listCollections({ name: 'users' }).toArray();
-            if (collections.length > 0) {
-                console.log('🔄 Cleaning legacy database indexes...');
+            const Order = require('./models/Order');
+
+            // 1. Sync User indexes
+            const userCols = await mongoose.connection.db.listCollections({ name: 'users' }).toArray();
+            if (userCols.length > 0) {
+                console.log('🔄 Cleaning User indexes...');
                 await User.collection.dropIndexes();
-                console.log('✅ Database indexes synchronized');
+            }
+
+            // 2. Sync Order indexes & Clean corrupted data
+            const orderCols = await mongoose.connection.db.listCollections({ name: 'orders' }).toArray();
+            if (orderCols.length > 0) {
+                console.log('🔄 Cleaning Order indexes & data...');
+                // Delete any orders that might be causing unique key conflicts with legacy code
+                await Order.deleteMany({ qrCode: 'temp' });
+                await Order.collection.dropIndexes();
+                console.log('✅ Order database synchronized');
             }
         } catch (e) {
             console.log('ℹ️ Index sync info:', e.message);

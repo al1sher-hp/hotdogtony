@@ -599,13 +599,13 @@ export function OrderConfirmation() {
             try {
                 const response = await api.get(`/orders/${orderId}`);
                 setOrder(response.data.order);
-                // Generate QR code
-                const qrData = JSON.stringify({
+                // Generate QR code data specifically for verification scanner
+                const qrPayload = JSON.stringify({
                     orderId: response.data.order._id,
                     code: response.data.order.qrCode,
                     timestamp: Date.now()
                 });
-                setQrDataURL(qrData);
+                setQrDataURL(qrPayload);
             } catch (error) {
                 showToast('Buyurtma topilmadi', 'error');
             } finally {

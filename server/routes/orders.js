@@ -49,21 +49,17 @@ router.post('/', async (req, res) => {
 
         const dailyNumber = dailyOrderCount + 1;
 
-        // 1. Generate a manual ID first
-        const orderId = new (require('mongoose').Types.ObjectId)();
+        // Generate final QR data first
+        const qrCode = `HDS-${uuidv4()}`;
 
-        // 2. Generate QR code with this ID
-        const { qrCode, qrCodeDataURL } = await (require('../utils/qrGenerator')).generateOrderQR(orderId);
-
-        // 3. Create final order object
+        // Create final order object
         const order = new Order({
-            _id: orderId,
             customerName,
             customerEmail: customerEmail || undefined,
             items: orderItems,
             totalPrice,
             dailyNumber,
-            qrCode: qrCode // Use the real unique code from the start
+            qrCode: qrCode
         });
 
         await order.save();
@@ -73,7 +69,7 @@ router.post('/', async (req, res) => {
 
         res.status(201).json({
             order,
-            qrCodeDataURL
+            qrCode // Plain code
         });
     } catch (error) {
         console.error('Create order error details:', error);
