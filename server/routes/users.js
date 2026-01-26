@@ -58,10 +58,14 @@ router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
         }
 
         // Check if email already exists
-        const existingUser = await User.findOne({ email });
+        const normalizedEmail = email.toLowerCase().trim();
+        const existingUser = await User.findOne({ email: normalizedEmail });
+
         if (existingUser) {
-            console.log(`⚠️ User creation failed: Email already exists (${email})`);
-            return res.status(400).json({ error: 'Bu email band. Boshqa email tanlang.' });
+            console.log(`⚠️ User creation failed: Email already exists (${normalizedEmail}) with role: ${existingUser.role}`);
+            return res.status(400).json({
+                error: `Bu email allaqachon ro'yxatdan o'tgan (${existingUser.role} sifatida). Iltimos, boshqa email kiriting yoki mavjudini o'chiring.`
+            });
         }
 
         const user = new User({

@@ -20,9 +20,13 @@ router.post('/register', async (req, res) => {
         }
 
         // Check if email exists
-        const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+        const normalizedEmail = email.toLowerCase().trim();
+        const existingUser = await User.findOne({ email: normalizedEmail });
+
         if (existingUser) {
-            return res.status(400).json({ error: 'Bu email allaqachon ro\'yxatdan o\'tgan' });
+            return res.status(400).json({
+                error: `Bu email allaqachon ro'yxatdan o'tgan (${existingUser.role === 'customer' ? 'mijoz' : 'xodim'} sifatida).`
+            });
         }
 
         // Create customer
