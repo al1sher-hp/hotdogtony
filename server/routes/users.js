@@ -86,17 +86,24 @@ router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
         console.error('Create user error:', error);
 
         if (error.code === 11000) {
-            const field = Object.keys(error.keyPattern)[0];
-            const value = error.keyValue[field];
+            // MongoDB unique constrain violation
+            // Sometimes it reports 'username' or 'email_1' based on database indexes
+            const duplicateValue = error.keyValue ? Object.values(error.keyValue)[0] : 'noma\'lum';
 
-            // Try to find who is using this email to give a better error
-            const culprit = await User.findOne({ email: value });
+            // We search across all fields to find who is blocking this
+            const culprit = await User.findOne({
+                $or: [
+                    { email: duplicateValue },
+                    { name: duplicateValue }
+                ]
+            });
+
             if (culprit) {
                 return res.status(400).json({
-                    error: `Bu ${field} allaqachon band. Egasi: "${culprit.name}", Roli: "${culprit.role}".`
+                    error: `Ushbu ma'lumot allaqachon band. Egasi: "${culprit.name}", Roli: "${culprit.role}". Email: ${culprit.email}`
                 });
             }
-            return res.status(400).json({ error: `Bu ${field} allaqachon ro'yxatdan o'tgan.` });
+            return res.status(400).json({ error: `Kiritilgan ma'lumot (email/ism) bazada mavjud.` });
         }
 
         if (error.name === 'ValidationError') {
