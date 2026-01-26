@@ -5,7 +5,7 @@ import socket from '../utils/socket';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { Html5Qrcode } from 'html5-qrcode';
-import { FiClock, FiMaximize, FiCheckCircle, FiPlay, FiLogOut, FiRefreshCw } from 'react-icons/fi';
+import { FiClock, FiMaximize, FiCheckCircle, FiPlay, FiLogOut, FiRefreshCw, FiX } from 'react-icons/fi';
 
 export default function EmployeeDashboard() {
     const [orders, setOrders] = useState([]);
