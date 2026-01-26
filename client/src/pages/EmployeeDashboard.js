@@ -16,7 +16,7 @@ export default function EmployeeDashboard() {
 
     const fetchOrders = useCallback(async () => {
         try {
-            const response = await api.get('/orders?status=pending,preparing,ready');
+            const response = await api.get('/orders?status=preparing,ready');
             setOrders(response.data.orders);
         } catch (error) {
             showToast('Buyurtmalarni yuklab bo\'lmadi', 'error');
@@ -28,7 +28,7 @@ export default function EmployeeDashboard() {
     const onScanSuccess = useCallback(async (decodedText) => {
         try {
             const response = await api.post('/orders/verify-qr', { qrData: decodedText });
-            showToast(`Buyurtma #${response.data.order.dailyNumber} tasdiqlandi va oshxonaga yuborildi`, 'success');
+            showToast(`Buyurtma #${response.data.order.dailyNumber} TASDIQLANDI`, 'success');
 
             // Stop scanner after success
             if (scannerInstance) {
@@ -36,6 +36,9 @@ export default function EmployeeDashboard() {
             }
             setShowScanner(false);
             fetchOrders();
+
+            // Notification sound
+            new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play();
         } catch (error) {
             showToast('QR kod xato yoki allaqachon tasdiqlangan', 'error');
         }
@@ -46,9 +49,8 @@ export default function EmployeeDashboard() {
             const html5QrCode = new Html5Qrcode("qr-reader");
             setScannerInstance(html5QrCode);
 
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            const config = { fps: 15, qrbox: { width: 250, height: 250 } };
 
-            // Attempt to use the back camera (environment)
             await html5QrCode.start(
                 { facingMode: "environment" },
                 config,
@@ -56,7 +58,7 @@ export default function EmployeeDashboard() {
             );
         } catch (err) {
             console.error("Camera start error:", err);
-            showToast("Kamerani ishga tushirib bo'lmadi. Kamera ruxsatini tekshiring.", "error");
+            showToast("Kamerani ishga tushirib bo'lmadi.", "error");
             setShowScanner(false);
         }
     }, [onScanSuccess]);
@@ -72,20 +74,10 @@ export default function EmployeeDashboard() {
         setShowScanner(false);
     }, [scannerInstance]);
 
-    const confirmOrder = async (orderId) => {
-        try {
-            await api.patch(`/orders/${orderId}/confirm`);
-            showToast('Tayyorlash boshlandi', 'info');
-            fetchOrders();
-        } catch (error) {
-            showToast('Xatolik yuz berdi', 'error');
-        }
-    };
-
     const markReady = async (orderId) => {
         try {
             await api.patch(`/orders/${orderId}/ready`);
-            showToast('Buyurtma tayyor! Mijozga xabar berildi', 'success');
+            showToast('Tayyor!', 'success');
             fetchOrders();
         } catch (error) {
             showToast('Xatolik yuz berdi', 'error');
@@ -95,7 +87,7 @@ export default function EmployeeDashboard() {
     const markCompleted = async (orderId) => {
         try {
             await api.patch(`/orders/${orderId}`, { status: 'completed' });
-            showToast('Buyurtma yakunlandi', 'success');
+            showToast('Topshirildi', 'success');
             fetchOrders();
         } catch (error) {
             showToast('Xatolik yuz berdi', 'error');
@@ -106,18 +98,12 @@ export default function EmployeeDashboard() {
         fetchOrders();
         socket.emit('joinEmployee');
 
-        socket.on('newOrder', (order) => {
-            setOrders(prev => [order, ...prev]);
-            showToast('Yangi buyurtma keldi!', 'info');
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-            audio.play().catch(e => console.log('Audio error'));
-        });
-
+        // Note: We no longer listen to 'newOrder' since they are silent now
+        // We only listen for updates (like when something is scanned or moved)
         socket.on('orderUpdated', () => fetchOrders());
         socket.on('orderReady', () => fetchOrders());
 
         return () => {
-            socket.off('newOrder');
             socket.off('orderUpdated');
             socket.off('orderReady');
         };
@@ -127,9 +113,6 @@ export default function EmployeeDashboard() {
     useEffect(() => {
         if (showScanner) {
             startScanner();
-        } else {
-            // Already handled by stopScanner function, 
-            // but just in case we close it via other means
         }
 
         return () => {
@@ -143,79 +126,48 @@ export default function EmployeeDashboard() {
 
     return (
         <div className="min-h-screen bg-[#f8fafc]">
-            <div className="navbar bg-indigo-950 text-white shadow-2xl px-6 sticky top-0 z-50">
+            <nav className="navbar bg-slate-900 text-white shadow-2xl px-6 sticky top-0 z-50">
                 <div className="flex-1">
-                    <h1 className="text-xl font-bold flex items-center gap-3">
-                        <span className="bg-white/10 p-2 rounded-2xl">👨‍🍳</span>
-                        Oshxona Boshqaruvi
+                    <h1 className="text-xl font-black flex items-center gap-3 tracking-tighter">
+                        <span className="bg-red-600 p-2 rounded-xl"><FiMaximize /></span>
+                        HODIM PANELI
                     </h1>
                 </div>
                 <div className="flex-none gap-4">
                     <button
                         onClick={() => showScanner ? stopScanner() : setShowScanner(true)}
-                        className={`btn btn-sm ${showScanner ? 'btn-error' : 'btn-accent text-indigo-950'} rounded-2xl gap-2 font-bold px-5 shadow-lg`}
+                        className={`btn btn-md ${showScanner ? 'btn-error' : 'btn-success text-white'} rounded-2xl gap-2 font-bold px-8 shadow-xl shadow-green-500/20`}
                     >
-                        <FiMaximize /> {showScanner ? 'Yopish' : 'Scan QR'}
+                        {showScanner ? <><FiX /> Yopish</> : <><FiMaximize /> QR SCAN</>}
                     </button>
-                    <button onClick={() => logout()} className="btn btn-ghost btn-circle hover:bg-white/10 transition-colors">
+                    <button onClick={() => logout()} className="btn btn-ghost btn-circle">
                         <FiLogOut size={20} />
                     </button>
                 </div>
-            </div>
+            </nav>
 
-            <div className="container mx-auto px-4 py-10 max-w-[1400px]">
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
                 {showScanner && (
-                    <div className="card bg-indigo-900 shadow-2xl mb-10 p-6 rounded-[2.5rem] border-8 border-indigo-800 animate-in fade-in zoom-in duration-300 relative overflow-hidden">
-                        <div className="absolute top-4 right-4 z-10">
-                            <button onClick={() => { stopScanner(); setTimeout(() => setShowScanner(true), 100); }} className="btn btn-circle btn-xs btn-ghost text-white border border-white/20">
-                                <FiRefreshCw />
-                            </button>
-                        </div>
-                        <div id="qr-reader" className="overflow-hidden rounded-[1.5rem] bg-black min-h-[300px]"></div>
-                        <p className="text-center text-white/50 text-xs mt-4 font-bold tracking-widest uppercase">Kamerani QR kodga qarating</p>
+                    <div className="card bg-slate-900 border-8 border-slate-800 shadow-2xl mb-12 p-6 rounded-[3rem] animate-in zoom-in duration-300 relative overflow-hidden max-w-lg mx-auto">
+                        <div id="qr-reader" className="overflow-hidden rounded-2xl bg-black min-h-[350px]"></div>
+                        <p className="text-center text-white/40 text-[10px] mt-4 font-black tracking-widest uppercase">Mijoz QR kodini kameraga qarating</p>
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                    {/* New Orders Section */}
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between px-2">
-                            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                                <span className="bg-amber-100 p-2 rounded-xl text-amber-600"><FiClock /></span>
-                                KUTILMOQDA
-                            </h2>
-                            <span className="badge badge-amber font-black h-8 px-4 border-0 shadow-sm text-amber-700 bg-amber-100">{orders.filter(o => o.status === 'pending').length}</span>
-                        </div>
-
-                        <div className="space-y-4">
-                            {orders.filter(o => o.status === 'pending').length === 0 ? (
-                                <EmptyState message="Yangi buyurtmalar yo'q" />
-                            ) : (
-                                orders.filter(o => o.status === 'pending').map(order => (
-                                    <OrderCard
-                                        key={order._id}
-                                        order={order}
-                                        type="pending"
-                                        onAction={() => confirmOrder(order._id)}
-                                    />
-                                ))
-                            )}
-                        </div>
-                    </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
                     {/* Preparing Section */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between px-2">
-                            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                                <span className="bg-indigo-100 p-2 rounded-xl text-indigo-600"><FiPlay /></span>
-                                TAYYORLANMOQDA
+                            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3 uppercase tracking-tighter">
+                                <span className="text-blue-600"><FiPlay /></span>
+                                Tayyorlanmoqda
                             </h2>
-                            <span className="badge badge-primary font-black h-8 px-4 border-0 shadow-sm text-indigo-700 bg-indigo-100">{orders.filter(o => o.status === 'preparing').length}</span>
+                            <span className="badge badge-lg bg-blue-100 border-0 text-blue-700 font-black">{orders.filter(o => o.status === 'preparing').length}</span>
                         </div>
 
                         <div className="space-y-4">
                             {orders.filter(o => o.status === 'preparing').length === 0 ? (
-                                <EmptyState message="Hozircha hech narsa yo'q" />
+                                <EmptyState message="Tayyorlanayotgan buyurtmalar yo'q. Yangi buyurtma olish uchun QR kodni skanerlang." />
                             ) : (
                                 orders.filter(o => o.status === 'preparing').map(order => (
                                     <OrderCard
@@ -232,16 +184,16 @@ export default function EmployeeDashboard() {
                     {/* Ready Section */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between px-2">
-                            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                                <span className="bg-emerald-100 p-2 rounded-xl text-emerald-600"><FiCheckCircle /></span>
-                                TAYYOR BUYURTMALAR
+                            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3 uppercase tracking-tighter">
+                                <span className="text-emerald-600"><FiCheckCircle /></span>
+                                Tayyor
                             </h2>
-                            <span className="badge badge-success font-black h-8 px-4 border-0 shadow-sm text-emerald-700 bg-emerald-100">{orders.filter(o => o.status === 'ready').length}</span>
+                            <span className="badge badge-lg bg-emerald-100 border-0 text-emerald-700 font-black">{orders.filter(o => o.status === 'ready').length}</span>
                         </div>
 
                         <div className="space-y-4">
                             {orders.filter(o => o.status === 'ready').length === 0 ? (
-                                <EmptyState message="Tayyor buyurtmalar yo'q" />
+                                <EmptyState message="Hozircha tayyor buyurtmalar yo'q." />
                             ) : (
                                 orders.filter(o => o.status === 'ready').map(order => (
                                     <OrderCard
@@ -268,12 +220,12 @@ const EmptyState = ({ message }) => (
 
 const OrderCard = ({ order, type, onAction }) => (
     <div className={`card bg-white shadow-sm hover:shadow-xl transition-all duration-300 border-l-[10px] ${type === 'pending' ? 'border-amber-400' :
-            type === 'preparing' ? 'border-indigo-500' : 'border-emerald-500'
+        type === 'preparing' ? 'border-indigo-500' : 'border-emerald-500'
         } rounded-3xl overflow-hidden p-6 animate-in fade-in slide-in-from-bottom-2`}>
         <div className="flex justify-between items-start mb-5">
             <div>
                 <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg ${type === 'pending' ? 'bg-amber-100 text-amber-700' :
-                        type === 'preparing' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
+                    type === 'preparing' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
                     }`}>Buyurtma #{order.dailyNumber}</span>
                 <h3 className="text-xl font-black text-slate-800 mt-1 uppercase tracking-tighter">{order.customerName}</h3>
             </div>
@@ -295,8 +247,8 @@ const OrderCard = ({ order, type, onAction }) => (
         <button
             onClick={onAction}
             className={`btn w-full h-14 rounded-2xl gap-3 font-black border-0 shadow-lg text-sm tracking-tighter transition-all ${type === 'pending' ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-200' :
-                    type === 'preparing' ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200' :
-                        'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
+                type === 'preparing' ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200' :
+                    'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-200'
                 }`}
         >
             {type === 'pending' && <><FiPlay /> TAYYORLASHNI BOSHLASH</>}

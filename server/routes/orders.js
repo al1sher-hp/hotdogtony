@@ -69,10 +69,7 @@ router.post('/', async (req, res) => {
         await order.save();
         await order.populate('items.menuItem');
 
-        // Emit socket event for new order (only for employees, not display)
-        if (req.app.get('io')) {
-            req.app.get('io').emit('newOrder', order);
-        }
+        // Note: No socket emission here to prevent fake/unpaid orders from showing on dashboard
 
         res.status(201).json({
             order,
