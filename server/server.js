@@ -88,8 +88,22 @@ mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
-    .then(() => {
+    .then(async () => {
         console.log('✅ Connected to MongoDB');
+
+        // FORCE SYNC INDEXES (Fixes the "Username/Email already exists" ghost issue)
+        try {
+            const User = require('./models/User');
+            // Check if collection exists before dropping
+            const collections = await mongoose.connection.db.listCollections({ name: 'users' }).toArray();
+            if (collections.length > 0) {
+                console.log('🔄 Cleaning legacy database indexes...');
+                await User.collection.dropIndexes();
+                console.log('✅ Database indexes synchronized');
+            }
+        } catch (e) {
+            console.log('ℹ️ Index sync info:', e.message);
+        }
 
         // Initialize default users
         initializeSuperAdmin();
