@@ -79,7 +79,11 @@ router.post('/', async (req, res) => {
         });
     } catch (error) {
         console.error('Create order error:', error);
-        res.status(500).json({ error: 'Failed to create order' });
+        res.status(500).json({
+            error: 'Failed to create order',
+            message: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 });
 
