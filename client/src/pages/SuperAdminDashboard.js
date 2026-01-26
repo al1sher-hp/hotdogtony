@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { showToast } from '../components/shared/Toast';
-import { FiUsers, FiShoppingBag, FiBox, FiMessageSquare, FiLogOut, FiTrash2, FiShield, FiPlus, FiX, FiEdit2, FiCheck } from 'react-icons/fi';
+import { FiUsers, FiShoppingBag, FiBox, FiMessageSquare, FiLogOut, FiTrash2, FiShield, FiPlus, FiEdit2, FiCheck } from 'react-icons/fi';
 
 export default function SuperAdminDashboard() {
     const [activeTab, setActiveTab] = useState('users');
