@@ -5,8 +5,8 @@ import api from '../utils/api';
 import { showToast } from '../components/shared/Toast';
 
 export default function SuperAdminLogin() {
-    const [email, setEmail] = useState('admin@hotdog.uz');
-    const [password, setPassword] = useState('admin123');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -28,33 +28,44 @@ export default function SuperAdminLogin() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-900 to-indigo-900 flex items-center justify-center p-4">
-            <div className="glass-card p-8 max-w-md w-full">
-                <h1 className="text-3xl font-bold text-white text-center mb-2">🔐 Super Admin</h1>
-                <p className="text-white text-opacity-80 text-center mb-8">Full System Access</p>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <input
-                        type="email"
-                        placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="input-modern"
-                    />
-                    <input
-                        type="password"
-                        placeholder="Parol"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        className="input-modern"
-                    />
-                    <button type="submit" disabled={loading} className="btn-gradient w-full">
-                        {loading ? 'Kirilmoqda...' : 'Kirish'}
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 flex items-center justify-center p-4">
+            <div className="card w-full max-w-md bg-base-100/10 backdrop-blur-3xl border border-white/5 p-12 rounded-[3.5rem] shadow-5xl animate-in zoom-in-95 duration-700">
+                <div className="text-center mb-10">
+                    <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-700 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-red-500/20 rotate-6 group hover:rotate-0 transition-all duration-500">
+                        <span className="text-4xl">🔐</span>
+                    </div>
+                    <h1 className="text-4xl font-black text-white tracking-tighter uppercase mb-2">Super Admin</h1>
+                    <p className="text-white/40 font-bold tracking-[0.2em] text-[10px] uppercase">Barcha huquqlar bilan kirish</p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-4">Email</label>
+                        <input
+                            type="email"
+                            placeholder="example@hotdog.uz"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="input input-bordered w-full h-16 rounded-2xl bg-white/5 border-0 focus:ring-2 focus:ring-red-500 font-bold px-6 text-white text-lg"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-4">Parol</label>
+                        <input
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="input input-bordered w-full h-16 rounded-2xl bg-white/5 border-0 focus:ring-2 focus:ring-red-500 font-bold px-6 text-white text-lg"
+                        />
+                    </div>
+
+                    <button type="submit" disabled={loading} className="btn btn-error w-full h-16 rounded-2xl font-black text-lg text-white shadow-2xl shadow-red-500/30 mt-4 uppercase tracking-tight group">
+                        {loading ? <span className="loading loading-spinner"></span> : 'Sistemaga Kirish'}
                     </button>
-                    <p className="text-white text-opacity-60 text-sm text-center">
-                        Default: admin@hotdog.uz / admin123
-                    </p>
                 </form>
             </div>
         </div>

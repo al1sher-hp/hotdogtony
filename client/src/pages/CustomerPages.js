@@ -293,10 +293,12 @@ export function Cart({ theme, toggleTheme }) {
     useEffect(() => {
         const savedCart = localStorage.getItem('cart');
         if (savedCart) setCart(JSON.parse(savedCart));
-        if (user) setCustomerName(user.name);
-        else {
-            const guest = localStorage.getItem('guestName');
-            if (guest) setCustomerName(guest);
+
+        const guestPref = localStorage.getItem('guestName');
+        if (guestPref) {
+            setCustomerName(guestPref);
+        } else if (user && user.role === 'customer') {
+            setCustomerName(user.name);
         }
     }, [user]);
 
@@ -408,19 +410,28 @@ export function Cart({ theme, toggleTheme }) {
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="form-control">
-                                    <label className="label">
-                                        <span className="label-text text-[10px] font-black uppercase opacity-60 tracking-widest ml-1">Qabul qiluvchi ismi</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="input input-bordered w-full h-14 rounded-2xl font-bold bg-base-200/50 border-0 focus:ring-2 focus:ring-primary text-base-content text-lg px-6"
-                                        placeholder="Ismingizni yozing..."
-                                        value={customerName}
-                                        onChange={e => setCustomerName(e.target.value)}
-                                        required
-                                    />
-                                </div>
+                                {!customerName && (
+                                    <div className="form-control">
+                                        <label className="label">
+                                            <span className="label-text text-[10px] font-black uppercase opacity-60 tracking-widest ml-1">Qabul qiluvchi ismi</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            className="input input-bordered w-full h-14 rounded-2xl font-bold bg-base-200/50 border-0 focus:ring-2 focus:ring-primary text-base-content text-lg px-6"
+                                            placeholder="Ismingizni yozing..."
+                                            value={customerName}
+                                            onChange={e => setCustomerName(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                )}
+
+                                {customerName && (
+                                    <div className="bg-base-200/50 p-4 rounded-2xl mb-4 border border-base-content/5 text-center">
+                                        <span className="text-[10px] font-black uppercase opacity-40 block mb-1">Buyurtmachi</span>
+                                        <span className="text-lg font-black text-base-content">{customerName}</span>
+                                    </div>
+                                )}
 
                                 <button type="submit" disabled={loading || cart.length === 0} className="btn btn-primary w-full h-16 rounded-2xl font-black text-lg text-white shadow-2xl shadow-primary/30 mt-4 uppercase tracking-tight gap-2 group">
                                     {loading ? <span className="loading loading-spinner"></span> : <>Tasdiqlash <FiCheck size={20} className="group-hover:scale-125 transition-transform" /></>}
