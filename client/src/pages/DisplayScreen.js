@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import socket from '../utils/socket';
 import api from '../utils/api';
+import { FiClock, FiCheckCircle, FiBell } from 'react-icons/fi';
 
 export default function DisplayScreen() {
     const [preparing, setPreparing] = useState([]);
@@ -8,13 +9,11 @@ export default function DisplayScreen() {
     const audioRef = useRef(null);
 
     useEffect(() => {
-        // Connect socket for display
         socket.connect();
         socket.emit('joinDisplay');
 
         const fetchOrders = async () => {
             try {
-                // Use public display endpoint (no auth required)
                 const response = await api.get('/orders/display');
                 setPreparing(response.data.preparing || []);
                 setReady(response.data.ready || []);
@@ -31,7 +30,6 @@ export default function DisplayScreen() {
 
         fetchOrders();
 
-        // Listen for real-time updates
         socket.on('orderUpdated', (order) => {
             if (order.status === 'preparing') {
                 setPreparing(prev => [order, ...prev.filter(o => o._id !== order._id)]);
@@ -46,228 +44,143 @@ export default function DisplayScreen() {
             setPreparing(prev => prev.filter(o => o._id !== order._id));
             setReady(prev => [order, ...prev.filter(o => o._id !== order._id)]);
             playSound();
-
-            // Remove from ready after 60 seconds
             setTimeout(() => {
                 setReady(prev => prev.filter(o => o._id !== order._id));
             }, 60000);
         });
 
-        socket.on('newOrder', (order) => {
-            // New orders start as pending, will appear when confirmed
-        });
-
         return () => {
             socket.off('orderUpdated');
             socket.off('orderReady');
-            socket.off('newOrder');
         };
     }, []);
 
     return (
-        <div className="display-screen">
-            {/* Header */}
-            <div className="display-header">
-                <h1>🌭 HOTDOG SHAHOBCHA</h1>
-            </div>
-
-            <div className="display-content">
-                {/* Tayyorlanmoqda Column */}
-                <div className="display-column preparing-column">
-                    <h2 className="column-title preparing-title">
-                        <span className="icon-spin">⏳</span>
-                        TAYYORLANMOQDA
-                    </h2>
-                    <div className="orders-grid">
-                        {preparing.map(order => (
-                            <div key={order._id} className="order-card preparing-card">
-                                <div className="order-number">{order.dailyNumber}</div>
-                                <div className="order-name">{order.customerName}</div>
-                            </div>
-                        ))}
-                        {preparing.length === 0 && (
-                            <div className="empty-message">Hozircha buyurtma yo'q</div>
-                        )}
+        <div className="min-h-screen bg-[#0a0a0c] text-slate-100 font-sans overflow-hidden flex flex-col selection:bg-primary selection:text-white">
+            {/* Header Area */}
+            <header className="bg-[#111114] border-b border-white/5 py-8 px-12 flex justify-between items-center shadow-2xl relative z-10">
+                <div className="flex items-center gap-6">
+                    <div className="bg-gradient-to-br from-primary to-secondary p-4 rounded-[2rem] shadow-2xl shadow-primary/20 rotate-3">
+                        <span className="text-5xl">🌭</span>
+                    </div>
+                    <div>
+                        <h1 className="text-5xl font-black tracking-tighter uppercase text-white leading-none">Hotdog Tony</h1>
+                        <p className="text-primary font-black uppercase tracking-[0.3em] text-xs mt-2 opacity-80">Buyurtmalar Monitori</p>
                     </div>
                 </div>
 
-                {/* Tayyor Column */}
-                <div className="display-column ready-column">
-                    <h2 className="column-title ready-title">
-                        <span>✅</span>
-                        TAYYOR
-                    </h2>
-                    <div className="orders-grid">
-                        {ready.map(order => (
-                            <div key={order._id} className="order-card ready-card">
-                                <div className="order-number">{order.dailyNumber}</div>
-                                <div className="order-name">{order.customerName}</div>
-                            </div>
-                        ))}
-                        {ready.length === 0 && (
-                            <div className="empty-message">Tayyor buyurtmalar yo'q</div>
-                        )}
+                <div className="flex items-center gap-4 bg-white/5 px-8 py-4 rounded-3xl border border-white/5 backdrop-blur-md">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
+                    <span className="text-sm font-black uppercase tracking-widest text-white/50">Jonli Yangilanish</span>
+                </div>
+            </header>
+
+            {/* Main Content Grid */}
+            <main className="flex-1 flex overflow-hidden">
+                {/* PREPARING COLUMN */}
+                <section className="flex-1 flex flex-col border-r border-white/5 bg-[#0d0d0f]/50">
+                    <div className="p-10 flex items-center justify-between border-b border-white/5">
+                        <h2 className="text-3xl font-black flex items-center gap-4 text-amber-500 uppercase tracking-tight">
+                            <div className="p-3 bg-amber-500/10 rounded-2xl animate-spin-slow"><FiClock size={28} /></div>
+                            Tayyorlanmoqda
+                        </h2>
+                        <span className="px-6 py-2 bg-amber-500 text-black font-black rounded-2xl text-xl shadow-xl shadow-amber-500/20">{preparing.length}</span>
                     </div>
-                </div>
-            </div>
 
-            {/* Footer / Scrolling Text */}
-            <div className="display-footer">
-                <div className="marquee-text">
-                    Yoqimli ishtaha! • Har kuni 10:00 dan 22:00 gacha xizmatingizdamiz • Sifat kafolatlangan • Hotdog Shahobcha •
-                </div>
-            </div>
+                    <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            {preparing.map(order => (
+                                <div key={order._id} className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 flex items-center gap-8 animate-in fade-in slide-in-from-left-8 duration-500 hover:bg-white/10 transition-all group">
+                                    <div className="text-6xl font-black text-amber-500/50 tracking-tighter group-hover:text-amber-500 group-hover:scale-110 transition-all">{order.dailyNumber}</div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-2xl font-black text-white uppercase truncate tracking-tight">{order.customerName}</div>
+                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mt-1">Jarayonda...</div>
+                                    </div>
+                                </div>
+                            ))}
+                            {preparing.length === 0 && (
+                                <div className="col-span-full py-32 text-center opacity-10">
+                                    <FiClock size={80} className="mx-auto mb-6" />
+                                    <p className="text-2xl font-black uppercase tracking-widest italic">Hozircha buyurtma yo'q</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
 
-            {/* Sound Notification */}
+                {/* READY COLUMN */}
+                <section className="flex-1 flex flex-col bg-green-500/[0.02]">
+                    <div className="p-10 flex items-center justify-between border-b border-white/5 bg-green-500/[0.03]">
+                        <h2 className="text-3xl font-black flex items-center gap-4 text-green-500 uppercase tracking-tight">
+                            <div className="p-3 bg-green-500/10 rounded-2xl animate-bounce-slow"><FiCheckCircle size={28} /></div>
+                            Tayyor!
+                        </h2>
+                        <span className="px-6 py-2 bg-green-500 text-white font-black rounded-2xl text-xl shadow-xl shadow-green-500/20">{ready.length}</span>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            {ready.map(order => (
+                                <div key={order._id} className="bg-green-500 border-0 rounded-[3rem] p-10 flex items-center gap-8 animate-in zoom-in duration-500 shadow-2xl shadow-green-500/20 group relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-6 opacity-20 group-hover:scale-150 transition-transform"><FiBell size={80} /></div>
+                                    <div className="text-8xl font-black text-white tracking-tighter drop-shadow-2xl relative z-10">{order.dailyNumber}</div>
+                                    <div className="flex-1 min-w-0 relative z-10">
+                                        <div className="text-3xl font-black text-white uppercase truncate tracking-tight">{order.customerName}</div>
+                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mt-2">MARHAMAT, QABUL QILING!</div>
+                                    </div>
+                                </div>
+                            ))}
+                            {ready.length === 0 && (
+                                <div className="col-span-full py-32 text-center opacity-10">
+                                    <FiCheckCircle size={80} className="mx-auto mb-6" />
+                                    <p className="text-2xl font-black uppercase tracking-widest italic">Tayyor buyurtmalar yo'q</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            {/* Footer Marquee */}
+            <footer className="bg-[#111114] border-t border-white/5 py-6 overflow-hidden">
+                <div className="flex animate-marquee whitespace-nowrap">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="flex items-center">
+                            <span className="text-2xl font-black text-white/20 uppercase tracking-[0.3em] mx-20">Yoqimli ishtaha!</span>
+                            <span className="text-primary text-3xl">🌭</span>
+                            <span className="text-2xl font-black text-white/20 uppercase tracking-[0.3em] mx-20">Sifat kafolatlangan</span>
+                            <span className="text-secondary text-3xl">✨</span>
+                            <span className="text-2xl font-black text-white/20 uppercase tracking-[0.3em] mx-20">Hotdog Tony - Eng yaxshisi</span>
+                            <span className="text-primary text-3xl">🌭</span>
+                        </div>
+                    ))}
+                </div>
+            </footer>
+
             <audio ref={audioRef} preload="auto">
-                <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdHuOi4Zpb3d6fn6CfYWChHp4eHqDfXuBgXqChXuFgH2Bfn+EgH+FgoBzdn+EgYJ/fYKCfnuAfYODe4CAfX2Af4KBgoCBgYJ+fn+DgYKAfX6Bg4OCf36Af4GBgH6BgYGBgH+AgYGBgH+AgYGBgH+AgYGBgH+AgYGBgH+AgYGBgA==" type="audio/wav" />
+                <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg" />
             </audio>
 
             <style>{`
-                .display-screen {
-                    min-height: 100vh;
-                    background: #171717;
-                    overflow: hidden;
-                    font-family: system-ui, -apple-system, sans-serif;
-                    display: flex;
-                    flex-direction: column;
-                }
-                .display-header {
-                    background: linear-gradient(135deg, #4338ca, #6366f1);
-                    padding: 1.5rem;
-                    text-align: center;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                }
-                .display-header h1 {
-                    color: white;
-                    font-size: 3rem;
-                    font-weight: 900;
-                    margin: 0;
-                    letter-spacing: -2px;
-                }
-                .display-content {
-                    display: flex;
-                    flex: 1;
-                    overflow: hidden;
-                }
-                .display-column {
-                    flex: 1;
-                    padding: 2rem;
-                    overflow-y: auto;
-                }
-                .preparing-column {
-                    border-right: 4px solid #262626;
-                }
-                .ready-column {
-                    background: rgba(34, 197, 94, 0.05);
-                }
-                .column-title {
-                    font-size: 2rem;
-                    font-weight: 900;
-                    text-align: center;
-                    margin-bottom: 2rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 1rem;
-                }
-                .preparing-title {
-                    color: #f59e0b;
-                }
-                .ready-title {
-                    color: #22c55e;
-                }
-                .icon-spin {
-                    display: inline-block;
-                    animation: spin 3s linear infinite;
-                }
-                @keyframes spin {
+                @keyframes spin-slow {
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }
                 }
-                .orders-grid {
-                    display: grid;
-                    grid-template-columns: repeat(2, 1fr);
-                    gap: 1.5rem;
-                }
-                .order-card {
-                    padding: 2rem;
-                    border-radius: 1.5rem;
-                    text-align: center;
-                }
-                .preparing-card {
-                    background: rgba(245, 158, 11, 0.1);
-                    border: 2px solid rgba(245, 158, 11, 0.3);
-                    animation: pulse 2s ease-in-out infinite;
-                }
-                @keyframes pulse {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.7; }
-                }
-                .ready-card {
-                    background: #22c55e;
-                    box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
-                    animation: bounce 1s ease-in-out infinite;
-                }
-                @keyframes bounce {
+                @keyframes bounce-slow {
                     0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-5px); }
-                }
-                .order-number {
-                    font-size: 4rem;
-                    font-weight: 900;
-                }
-                .preparing-card .order-number {
-                    color: #f59e0b;
-                }
-                .ready-card .order-number {
-                    color: white;
-                }
-                .order-name {
-                    font-size: 1.25rem;
-                    font-weight: 600;
-                    margin-top: 0.5rem;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                }
-                .preparing-card .order-name {
-                    color: #9ca3af;
-                }
-                .ready-card .order-name {
-                    color: rgba(255, 255, 255, 0.9);
-                }
-                .empty-message {
-                    grid-column: 1 / -1;
-                    text-align: center;
-                    color: #6b7280;
-                    font-size: 1.25rem;
-                    padding: 2rem;
-                }
-                .display-footer {
-                    background: #262626;
-                    padding: 0.75rem 0;
-                    overflow: hidden;
-                    position: relative;
-                }
-                .marquee-text {
-                    color: rgba(245, 158, 11, 0.5);
-                    font-weight: 600;
-                    font-size: 1.125rem;
-                    white-space: nowrap;
-                    animation: marquee 30s linear infinite;
+                    50% { transform: translateY(-10px); }
                 }
                 @keyframes marquee {
-                    0% { transform: translateX(100%); }
-                    100% { transform: translateX(-100%); }
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
                 }
-                @media (max-width: 768px) {
-                    .display-header h1 { font-size: 1.5rem; }
-                    .column-title { font-size: 1.25rem; }
-                    .orders-grid { grid-template-columns: 1fr; gap: 1rem; }
-                    .order-number { font-size: 2.5rem; }
-                    .order-card { padding: 1rem; }
-                }
+                .animate-spin-slow { animation: spin-slow 8s linear infinite; }
+                .animate-bounce-slow { animation: bounce-slow 3s ease-in-out infinite; }
+                .animate-marquee { animation: marquee 40s linear infinite; }
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
             `}</style>
         </div>
     );
