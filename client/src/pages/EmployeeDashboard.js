@@ -27,33 +27,32 @@ export default function EmployeeDashboard() {
     }, []);
 
     const onScanSuccess = useCallback(async (decodedText) => {
-        // SYNCHRONOUS LOCK: isProcessingRef changes instantly
-        if (isProcessingRef.current) return;
+        // Double check: if already processing or scanner UI is closed, ignore
+        if (isProcessingRef.current || !showScanner) return;
 
         isProcessingRef.current = true;
-        try {
-            const response = await api.post('/orders/verify-qr', { qrData: decodedText });
-            showToast(`Buyurtma #${response.data.order.dailyNumber} TASDIQLANDI`, 'success');
 
-            // Stop scanner after success
+        try {
+            // 1. Immediately stop scanner to prevent more triggers
             if (scannerInstance) {
                 try { await scannerInstance.stop(); } catch (e) { }
             }
+
+            // 2. Process API
+            const response = await api.post('/orders/verify-qr', { qrData: decodedText });
+            showToast(`Buyurtma #${response.data.order.dailyNumber} TASDIQLANDI`, 'success');
+
+            // 3. UI Updates
             setShowScanner(false);
             fetchOrders();
-            // Reset lock on success so next scan works when scanner is re-opened
-            isProcessingRef.current = false;
+            // NOTE: We do NOT reset isProcessingRef here. 
+            // It will be reset when the user clicks "QR SCAN" again.
         } catch (error) {
-            // Only show toast if it's not a common "already processed" error
-            // to avoid duplicates even in error state
             showToast(error.response?.data?.error || 'QR kod xato', 'error');
-
-            // Give 2 seconds before allowing next scan if error occurs
-            setTimeout(() => {
-                isProcessingRef.current = false;
-            }, 2000);
+            // On error, allow retry after 2 seconds
+            setTimeout(() => { if (showScanner) isProcessingRef.current = false; }, 2000);
         }
-    }, [fetchOrders, scannerInstance]);
+    }, [fetchOrders, scannerInstance, showScanner]);
 
     const startScanner = useCallback(async () => {
         try {
@@ -73,6 +72,15 @@ export default function EmployeeDashboard() {
             setShowScanner(false);
         }
     }, [onScanSuccess]);
+
+    const toggleScanner = () => {
+        if (!showScanner) {
+            isProcessingRef.current = false; // Reset lock when opening
+            setShowScanner(true);
+        } else {
+            stopScanner();
+        }
+    };
 
     const stopScanner = useCallback(async () => {
         if (scannerInstance && scannerInstance.isScanning) {
@@ -146,7 +154,7 @@ export default function EmployeeDashboard() {
                 </div>
                 <div className="flex-none gap-4">
                     <button
-                        onClick={() => showScanner ? stopScanner() : setShowScanner(true)}
+                        onClick={toggleScanner}
                         className={`btn btn-md ${showScanner ? 'btn-error' : 'btn-success text-white'} rounded-2xl gap-2 font-bold px-8 shadow-xl shadow-green-500/20`}
                     >
                         {showScanner ? <><FiX /> Yopish</> : <><FiMaximize /> QR SCAN</>}
