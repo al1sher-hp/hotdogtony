@@ -211,42 +211,42 @@ const initializeDefaultMenu = async () => {
             const defaultItems = [
                 {
                     name: 'Classic Hot Dog',
-                    description: 'Traditional hot dog with ketchup and mustard',
+                    description: 'Klassik hot-dog, go\'shtli sosiska va maxsus sous bilan',
                     price: 15000,
                     category: 'classic',
-                    image: 'https://via.placeholder.com/400x300/FF6B6B/FFFFFF?text=Classic+Hot+Dog',
+                    image: 'https://images.unsplash.com/photo-1541214113241-21578d2d9b62?auto=format&fit=crop&q=80&w=800',
                     available: true
                 },
                 {
                     name: 'Cheese Hot Dog',
-                    description: 'Hot dog with melted cheese',
+                    description: 'Eritilgan pishloq va xonaki sous bilan boyitilgan hot-dog',
                     price: 18000,
                     category: 'classic',
-                    image: 'https://via.placeholder.com/400x300/4ECDC4/FFFFFF?text=Cheese+Hot+Dog',
+                    image: 'https://images.unsplash.com/photo-1612392062631-94dd858cba88?auto=format&fit=crop&q=80&w=800',
                     available: true
                 },
                 {
                     name: 'Premium Deluxe',
-                    description: 'Premium hot dog with special sauce and toppings',
+                    description: 'Premium darajadagi hot-dog, eng sara masalliqlar to\'plami',
                     price: 25000,
                     category: 'premium',
-                    image: 'https://via.placeholder.com/400x300/95E1D3/FFFFFF?text=Premium+Deluxe',
+                    image: 'https://images.unsplash.com/photo-1599599810694-b5b37304c041?auto=format&fit=crop&q=80&w=800',
                     available: true
                 },
                 {
                     name: 'Combo Meal',
-                    description: 'Hot dog + French fries + Drink',
+                    description: 'Hot-dog + Kartoshka fri + Ichimlik (To\'liq to\'plam)',
                     price: 30000,
                     category: 'combo',
-                    image: 'https://via.placeholder.com/400x300/F38181/FFFFFF?text=Combo+Meal',
+                    image: 'https://images.unsplash.com/photo-1513185158878-8d8c1827053e?auto=format&fit=crop&q=80&w=800',
                     available: true
                 },
                 {
-                    name: 'Cola',
-                    description: 'Refreshing cold cola',
+                    name: 'Coca Cola',
+                    description: 'Muzdek va tetiklashtiruvchi Coca-Cola 0.5L',
                     price: 5000,
                     category: 'drinks',
-                    image: 'https://via.placeholder.com/400x300/AA96DA/FFFFFF?text=Cola',
+                    image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&q=80&w=800',
                     available: true
                 }
             ];

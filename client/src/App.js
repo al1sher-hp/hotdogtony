@@ -31,7 +31,7 @@ import Toast from './components/shared/Toast';
 
 function AppContent() {
     const { user, loading } = useAuth();
-    const [theme, setTheme] = React.useState(localStorage.getItem('theme') || 'light');
+    const [theme, setTheme] = React.useState(localStorage.getItem('theme') || 'hotdog');
 
     useEffect(() => {
         // Connect socket
@@ -47,7 +47,7 @@ function AppContent() {
     }, [theme]);
 
     const toggleTheme = () => {
-        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+        setTheme(prev => prev === 'dark' ? 'hotdog' : 'dark');
     };
 
     if (loading) {

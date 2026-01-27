@@ -9,7 +9,7 @@ import api from '../utils/api';
 import socket from '../utils/socket';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon, FiArrowRight, FiUserPlus, FiLogIn } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 
 // ==================================================================
@@ -66,55 +66,76 @@ export function CustomerLanding({ theme, toggleTheme }) {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
-            <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[140px]"></div>
-            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-secondary/20 rounded-full blur-[140px]"></div>
+        <div className="min-h-screen bg-base-200 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500">
+            {/* Background elements for Premium feel */}
+            <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[140px] animate-pulse-slow"></div>
+            <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-secondary/20 rounded-full blur-[140px] animate-pulse-slow"></div>
 
-            <div className="absolute top-6 right-6">
-                <button onClick={toggleTheme} className="btn btn-ghost btn-circle text-white/40 hover:text-white transition-colors bg-white/5 border-0 rounded-2xl w-14 h-14">
-                    {theme === 'dark' ? <FiSun size={24} /> : <FiMoon size={24} />}
+            <div className="absolute top-6 right-6 z-20">
+                <button onClick={toggleTheme} className="btn btn-ghost btn-circle shadow-lg bg-base-100/50 backdrop-blur-md hover:bg-base-100 transition-all border border-base-content/5">
+                    {theme === 'dark' ? <FiSun size={20} className="text-yellow-400" /> : <FiMoon size={20} className="text-indigo-600" />}
                 </button>
             </div>
 
-            <div className="glass-card bg-white/5 border border-white/5 backdrop-blur-2xl p-8 md:p-14 max-w-md w-full animate-in fade-in zoom-in duration-700 rounded-[3.5rem] shadow-4xl">
+            <div className="card w-full max-w-md bg-base-100/80 backdrop-blur-3xl shadow-2xl rounded-[3rem] p-8 md:p-12 border border-base-content/5 animate-in fade-in zoom-in duration-700 relative z-10">
                 <div className="text-center mb-10">
-                    <div className="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl rotate-12 transition-all duration-500">
-                        <span className="text-6xl">🌭</span>
+                    <div className="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl rotate-12 group hover:rotate-0 transition-all duration-500 ring-4 ring-white/10">
+                        <span className="text-6xl drop-shadow-xl">🌭</span>
                     </div>
-                    <h2 className="text-4xl font-black text-white mb-2 tracking-tighter uppercase">Hotdog Tony</h2>
-                    <p className="text-white/40 font-bold tracking-widest text-[10px] uppercase">Premium Street Food</p>
+                    <h2 className="text-4xl font-black text-base-content mb-2 tracking-tighter uppercase">Hotdog Tony</h2>
+                    <p className="text-base-content/50 font-bold tracking-widest text-[10px] uppercase">Gourmet Street Food Experience</p>
                 </div>
 
-                {authMode === 'guest' && (
-                    <div className="space-y-4">
-                        <input type="text" placeholder="Ismingizni kiriting" value={name} onChange={(e) => setName(e.target.value)} className="input w-full h-14 rounded-2xl bg-white/5 border-white/10 text-white font-bold px-6" />
-                        <button onClick={handleGuestOrder} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20">Buyurtma Berish</button>
-                        <div className="divider text-white/10 text-[10px] font-black uppercase tracking-widest leading-none">yoki</div>
-                        <div className="flex gap-3">
-                            <button onClick={() => setAuthMode('login')} className="btn btn-ghost flex-1 text-white border border-white/10 rounded-2xl text-[10px] font-black uppercase">Kirish</button>
-                            <button onClick={() => setAuthMode('register')} className="btn btn-ghost flex-1 text-white border border-white/10 rounded-2xl text-[10px] font-black uppercase">Ro'yxatdan o'tish</button>
+                <div className="space-y-6">
+                    {authMode === 'guest' && (
+                        <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
+                            <input
+                                type="text"
+                                placeholder="Ismingizni kiriting"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content"
+                            />
+                            <button onClick={handleGuestOrder} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white gap-2">
+                                Buyurtma Boshlash <FiArrowRight />
+                            </button>
+
+                            <div className="divider text-[10px] font-black uppercase opacity-20 tracking-widest">Yoki</div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={() => setAuthMode('login')} className="btn btn-outline btn-sm rounded-xl font-black uppercase text-[10px] tracking-widest gap-2">
+                                    <FiLogIn size={14} /> Kirish
+                                </button>
+                                <button onClick={() => setAuthMode('register')} className="btn btn-outline btn-sm rounded-xl font-black uppercase text-[10px] tracking-widest gap-2">
+                                    <FiUserPlus size={14} /> RO'YXATDAN
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {authMode === 'login' && (
-                    <div className="space-y-4">
-                        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="input w-full h-14 rounded-2xl bg-white/5 border-white/10 text-white font-bold px-6" />
-                        <input type="password" placeholder="Parol" value={password} onChange={(e) => setPassword(e.target.value)} className="input w-full h-14 rounded-2xl bg-white/5 border-white/10 text-white font-bold px-6" />
-                        <button onClick={handleLogin} disabled={loading} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20">{loading ? '...' : 'Kirish'}</button>
-                        <button onClick={() => setAuthMode('guest')} className="btn btn-link btn-xs text-white/40 block mx-auto mt-2">Orqaga</button>
-                    </div>
-                )}
+                    {authMode === 'login' && (
+                        <div className="space-y-4 animate-in slide-in-from-right-4 duration-500">
+                            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
+                            <input type="password" placeholder="Parol" value={password} onChange={(e) => setPassword(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
+                            <button onClick={handleLogin} disabled={loading} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white">
+                                {loading ? <span className="loading loading-spinner"></span> : 'Kirish'}
+                            </button>
+                            <button onClick={() => setAuthMode('guest')} className="btn btn-ghost btn-sm w-full font-bold opacity-40 uppercase tracking-widest text-[10px]">Orqaga</button>
+                        </div>
+                    )}
 
-                {authMode === 'register' && (
-                    <div className="space-y-4">
-                        <input type="text" placeholder="To'liq ism" value={name} onChange={(e) => setName(e.target.value)} className="input w-full h-14 rounded-2xl bg-white/5 border-white/10 text-white font-bold px-6" />
-                        <input type="email" placeholder="Email manzilingiz" value={email} onChange={(e) => setEmail(e.target.value)} className="input w-full h-14 rounded-2xl bg-white/5 border-white/10 text-white font-bold px-6" />
-                        <input type="password" placeholder="Parol" value={password} onChange={(e) => setPassword(e.target.value)} className="input w-full h-14 rounded-2xl bg-white/5 border-white/10 text-white font-bold px-6" />
-                        <button onClick={handleRegister} disabled={loading} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20">{loading ? '...' : 'Ro\'yxatdan o\'tish'}</button>
-                        <button onClick={() => setAuthMode('guest')} className="btn btn-link btn-xs text-white/40 block mx-auto mt-2">Orqaga</button>
-                    </div>
-                )}
+                    {authMode === 'register' && (
+                        <div className="space-y-4 animate-in slide-in-from-left-4 duration-500">
+                            <input type="text" placeholder="Ism-sharif" value={name} onChange={(e) => setName(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
+                            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
+                            <input type="password" placeholder="Parol" value={password} onChange={(e) => setPassword(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
+                            <button onClick={handleRegister} disabled={loading} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white">
+                                {loading ? <span className="loading loading-spinner"></span> : 'Ro\'yxatdan o\'tish'}
+                            </button>
+                            <button onClick={() => setAuthMode('guest')} className="btn btn-ghost btn-sm w-full font-bold opacity-40 uppercase tracking-widest text-[10px]">Orqaga</button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -129,7 +150,7 @@ export function Menu({ theme, toggleTheme }) {
     const [cart, setCart] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
 
     const categories = [
         { value: 'all', label: 'BARCHASI' },
@@ -169,41 +190,91 @@ export function Menu({ theme, toggleTheme }) {
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
     const filteredItems = selectedCategory === 'all' ? menuItems : menuItems.filter(item => item.category === selectedCategory);
 
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+        showToast('Tizimdan chiqdingiz', 'info');
+    };
+
     if (loading) return <div className="min-h-screen flex items-center justify-center bg-base-200"><LoadingSpinner /></div>;
 
     return (
-        <div className="min-h-screen bg-base-200">
-            <nav className="navbar bg-base-100/90 border-b border-base-300 sticky top-0 z-50 backdrop-blur px-6">
-                <div className="flex-1 font-black uppercase tracking-tighter text-xl">🌭 Hotdog Tony</div>
+        <div className="min-h-screen bg-base-200 transition-colors duration-500">
+            <nav className="navbar bg-base-100/80 border-b border-base-content/5 sticky top-0 z-50 backdrop-blur-xl px-6 h-20">
+                <div className="flex-1">
+                    <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
+                        <div className="bg-primary p-2.5 rounded-2xl text-white shadow-xl shadow-primary/20 group-hover:scale-110 transition-all duration-500">
+                            <span className="text-2xl">🌭</span>
+                        </div>
+                        <h1 className="text-xl font-black tracking-tighter uppercase text-base-content ml-1">Hotdog Tony</h1>
+                    </button>
+                </div>
                 <div className="flex gap-2">
-                    <button onClick={toggleTheme} className="btn btn-ghost btn-circle btn-sm">{theme === 'dark' ? <FiSun /> : <FiMoon />}</button>
-                    <button onClick={() => navigate('/cart')} className="btn btn-ghost relative btn-circle"><FiShoppingCart />{cartCount > 0 && <span className="badge badge-primary badge-sm absolute top-0 right-0">{cartCount}</span>}</button>
-                    {user && <button onClick={() => navigate('/profile')} className="btn btn-ghost btn-circle"><FiUser /></button>}
+                    <button onClick={toggleTheme} className="btn btn-ghost btn-circle btn-sm bg-base-200/50 hover:bg-base-200">
+                        {theme === 'dark' ? <FiSun className="text-yellow-400" /> : <FiMoon className="text-indigo-600" />}
+                    </button>
+
+                    <div className="h-6 w-[1px] bg-base-content/10 mx-1"></div>
+
+                    <button onClick={() => navigate('/cart')} className="btn btn-ghost btn-circle relative bg-base-200/50 hover:bg-base-200">
+                        <FiShoppingCart className="w-5 h-5 text-base-content" />
+                        {cartCount > 0 && <span className="badge badge-primary font-bold absolute -top-1 -right-1 border-2 border-base-100 animate-pulse text-[10px]">{cartCount}</span>}
+                    </button>
+
+                    {user && (
+                        <>
+                            <button onClick={() => navigate('/profile')} className="btn btn-ghost btn-circle bg-base-200/50 hover:bg-base-200">
+                                <FiUser className="w-5 h-5 text-base-content" />
+                            </button>
+                            <button onClick={handleLogout} className="btn btn-ghost btn-circle text-error bg-error/5 hover:bg-error/10">
+                                <FiTrash2 className="w-5 h-5" />
+                            </button>
+                        </>
+                    )}
                 </div>
             </nav>
 
-            <div className="bg-base-100 p-4 sticky top-[64px] z-40 border-b border-base-300 overflow-x-auto">
-                <div className="flex gap-2 min-w-max justify-center">
+            <div className="bg-base-100/50 backdrop-blur-md sticky top-20 z-40 border-b border-base-content/5 py-4 overflow-x-auto">
+                <div className="container mx-auto flex gap-3 min-w-max justify-center px-4">
                     {categories.map(cat => (
-                        <button key={cat.value} onClick={() => setSelectedCategory(cat.value)} className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${selectedCategory === cat.value ? 'bg-primary text-white shadow-lg' : 'bg-base-200 opacity-60'}`}>{cat.label}</button>
+                        <button
+                            key={cat.value}
+                            onClick={() => setSelectedCategory(cat.value)}
+                            className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${selectedCategory === cat.value ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-base-300/50 text-base-content/40 hover:bg-base-300 hover:text-base-content'}`}
+                        >
+                            {cat.label}
+                        </button>
                     ))}
                 </div>
             </div>
 
-            <main className="container mx-auto p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {filteredItems.map(item => (
-                    <div key={item._id} className="card bg-base-100 border border-base-300 hover:shadow-2xl transition-all rounded-[2.5rem] overflow-hidden group">
-                        <figure className="h-48 overflow-hidden"><img src={item.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" /></figure>
-                        <div className="card-body p-6">
-                            <h2 className="card-title font-black uppercase text-sm tracking-tight">{item.name}</h2>
-                            <p className="text-xs opacity-60 line-clamp-2 h-8">{item.description}</p>
-                            <div className="flex justify-between items-center mt-4">
-                                <span className="text-xl font-black text-primary">{(item.price).toLocaleString()} <small className="text-[10px] opacity-40">so'm</small></span>
-                                <button onClick={() => addToCart(item)} className="btn btn-primary btn-sm rounded-xl px-4 font-black"><FiPlus /></button>
+            <main className="container mx-auto p-8 max-w-7xl animate-in fade-in duration-1000">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    {filteredItems.map(item => (
+                        <div key={item._id} className="card bg-base-100 border border-base-content/5 hover:border-primary/20 hover:shadow-2xl transition-all duration-500 rounded-[2.5rem] overflow-hidden group hover:-translate-y-2">
+                            <figure className="h-56 overflow-hidden relative">
+                                <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                <div className="absolute top-4 right-4 badge bg-black/50 backdrop-blur-md border-0 text-white font-black text-[9px] px-3 py-2.5 rounded-xl uppercase tracking-widest">{item.category}</div>
+                            </figure>
+                            <div className="card-body p-8">
+                                <h2 className="card-title font-black uppercase text-lg tracking-tight text-base-content leading-none mb-1">{item.name}</h2>
+                                <p className="text-[11px] font-medium opacity-40 line-clamp-2 h-8 leading-relaxed italic mb-4">{item.description}</p>
+                                <div className="flex justify-between items-center mt-auto bg-base-200/50 p-3 rounded-2xl border border-base-content/5">
+                                    <div className="flex flex-col">
+                                        <span className="text-xl font-black text-primary tracking-tighter">{(item.price || 0).toLocaleString()}</span>
+                                        <span className="text-[9px] font-black opacity-30 uppercase tracking-widest leading-none">so'm</span>
+                                    </div>
+                                    <button onClick={() => addToCart(item)} className="btn btn-primary btn-sm rounded-xl px-5 font-black text-white shadow-lg shadow-primary/20 hover:scale-110 transition-transform">
+                                        <FiPlus size={18} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
+                {filteredItems.length === 0 && (
+                    <div className="text-center py-24 opacity-20 italic font-black uppercase tracking-widest">Hozircha mahsulotlar mavjud emas...</div>
+                )}
             </main>
         </div>
     );
@@ -217,7 +288,7 @@ export function Cart({ theme, toggleTheme }) {
     const [loading, setLoading] = useState(false);
     const [customerName, setCustomerName] = useState('');
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
 
     useEffect(() => {
         const savedCart = localStorage.getItem('cart');
@@ -239,13 +310,14 @@ export function Cart({ theme, toggleTheme }) {
         const updated = cart.filter(i => i._id !== id);
         setCart(updated);
         localStorage.setItem('cart', JSON.stringify(updated));
+        showToast('Savatdan olib tashlandi', 'info');
     };
 
     const totalPrice = cart.reduce((s, i) => s + (i.price * i.quantity), 0);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (cart.length === 0) return;
+        if (cart.length === 0) return showToast('Savatchangiz bo\'sh', 'error');
         setLoading(true);
         try {
             const res = await api.post('/orders', {
@@ -254,52 +326,109 @@ export function Cart({ theme, toggleTheme }) {
                 totalPrice
             });
             localStorage.removeItem('cart');
+            showToast('Buyurtma muvaffaqiyatli berildi!', 'success');
             navigate(`/order-confirmation/${res.data.order._id}`);
-        } catch (e) {
-            showToast('Xatolik yuz berdi', 'error');
+        } catch (error) {
+            showToast('Xatolik yuz berdi: ' + (error.response?.data?.error || ''), 'error');
         } finally {
             setLoading(false);
         }
     };
 
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+        showToast('Tizimdan chiqdingiz', 'info');
+    };
+
     return (
-        <div className="min-h-screen bg-base-200">
-            <nav className="navbar bg-base-100 border-b border-base-300 px-6 sticky top-0 z-50">
-                <button onClick={() => navigate('/menu')} className="btn btn-ghost font-black uppercase text-xs tracking-widest">← Orqaga</button>
-                <div className="flex-1 text-center font-black uppercase tracking-tighter text-xl">Sa'vatcha</div>
-                <button onClick={toggleTheme} className="btn btn-ghost btn-circle btn-sm">{theme === 'dark' ? <FiSun /> : <FiMoon />}</button>
+        <div className="min-h-screen bg-base-200 transition-colors duration-500">
+            <nav className="navbar bg-base-100 border-b border-base-content/5 px-6 sticky top-0 z-50 h-20 backdrop-blur-xl bg-opacity-80">
+                <div className="flex-1">
+                    <button onClick={() => navigate('/menu')} className="btn btn-ghost btn-sm px-4 rounded-xl font-black uppercase text-[10px] tracking-widest gap-2">
+                        ← MENYUGA QAYTISH
+                    </button>
+                </div>
+                <div className="flex-none flex gap-2">
+                    <button onClick={toggleTheme} className="btn btn-ghost btn-circle btn-sm bg-base-200/50">
+                        {theme === 'dark' ? <FiSun className="text-yellow-400" /> : <FiMoon className="text-indigo-600" />}
+                    </button>
+                    <button onClick={handleLogout} className="btn btn-ghost btn-circle btn-sm text-error bg-error/5 hover:bg-error/10">
+                        <FiTrash2 className="w-4 h-4" />
+                    </button>
+                </div>
             </nav>
 
-            <div className="container mx-auto p-4 lg:p-12 max-w-6xl grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-4">
-                    <h2 className="text-3xl font-black uppercase italic tracking-tighter mb-6">Buyurtmangiz</h2>
-                    {cart.length === 0 ? <p className="opacity-40 font-bold uppercase tracking-widest">Savat hali bo'sh...</p> : cart.map(item => (
-                        <div key={item._id} className="card bg-base-100 p-4 border border-base-300 rounded-[2rem] flex flex-row items-center gap-4">
-                            <img src={item.image} alt="" className="w-16 h-16 rounded-2xl object-cover" />
-                            <div className="flex-1">
-                                <h3 className="font-black text-xs uppercase tracking-tight">{item.name}</h3>
-                                <p className="text-primary font-black">{(item.price).toLocaleString()} so'm</p>
-                            </div>
-                            <div className="flex items-center gap-3 bg-base-200 p-1 rounded-full">
-                                <button onClick={() => updateQuantity(item._id, -1)} className="btn btn-ghost btn-xs btn-circle bg-base-100"><FiMinus /></button>
-                                <span className="font-black text-xs w-4 text-center">{item.quantity}</span>
-                                <button onClick={() => updateQuantity(item._id, 1)} className="btn btn-ghost btn-xs btn-circle bg-base-100"><FiPlus /></button>
-                            </div>
-                            <button onClick={() => removeItem(item._id)} className="btn btn-ghost btn-circle text-error"><FiTrash2 /></button>
-                        </div>
-                    ))}
-                </div>
+            <div className="container mx-auto p-4 lg:p-12 max-w-6xl animate-in fade-in duration-700">
+                <div className="grid lg:grid-cols-3 gap-10">
+                    <div className="lg:col-span-2 space-y-6">
+                        <h2 className="text-4xl font-black uppercase tracking-tighter text-base-content mb-8">Savatchangiz</h2>
 
-                <div className="card bg-base-100 shadow-2xl p-8 rounded-[3rem] h-fit sticky top-24 border border-base-300">
-                    <div className="flex justify-between items-center mb-8 border-b border-dashed border-base-300 pb-4">
-                        <span className="font-black opacity-40 uppercase text-[10px] tracking-widest">Jami Summa:</span>
-                        <span className="text-3xl font-black text-primary tracking-tighter">{totalPrice.toLocaleString()} so'm</span>
+                        {cart.length === 0 ? (
+                            <div className="card bg-base-100 p-20 text-center rounded-[3rem] border border-dashed border-base-content/20">
+                                <span className="text-8xl mb-6 grayscale opacity-10">🛒</span>
+                                <p className="font-black opacity-20 uppercase tracking-widest text-sm">Savatchangiz bo'sh...</p>
+                                <button onClick={() => navigate('/menu')} className="btn btn-primary btn-sm mt-8 rounded-xl px-8 shadow-xl shadow-primary/20 text-white">XARIDLARNI BOSHLASH</button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {cart.map(item => (
+                                    <div key={item._id} className="card bg-base-100 p-6 border border-base-content/5 rounded-[2.5rem] flex flex-row items-center gap-6 shadow-sm hover:shadow-xl transition-all duration-500 group">
+                                        <div className="w-24 h-24 rounded-[1.5rem] overflow-hidden shadow-inner flex-shrink-0">
+                                            <img src={item.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-black text-sm uppercase tracking-tight text-base-content mb-1 leading-none">{item.name}</h3>
+                                            <p className="text-primary font-black text-base tracking-tighter">{(item.price || 0).toLocaleString()} <small className="text-[10px] opacity-40 uppercase">so'm</small></p>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-base-200 p-2 rounded-2xl">
+                                            <button onClick={() => updateQuantity(item._id, -1)} className="btn btn-ghost btn-xs btn-circle bg-base-100 shadow-sm hover:bg-white"><FiMinus size={10} /></button>
+                                            <span className="font-black text-xs w-6 text-center text-base-content">{item.quantity}</span>
+                                            <button onClick={() => updateQuantity(item._id, 1)} className="btn btn-ghost btn-xs btn-circle bg-base-100 shadow-sm hover:bg-white"><FiPlus size={10} /></button>
+                                        </div>
+                                        <button onClick={() => removeItem(item._id)} className="btn btn-ghost btn-sm btn-circle text-error hover:bg-error/10"><FiTrash2 size={18} /></button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <label className="text-[10px] font-black uppercase opacity-40 block mb-1 ml-2">Qabul qiluvchi</label>
-                        <input type="text" className="input input-bordered w-full h-14 rounded-2xl font-bold bg-base-200 border-0" value={customerName} onChange={e => setCustomerName(e.target.value)} required />
-                        <button type="submit" disabled={loading || cart.length === 0} className="btn btn-primary w-full h-16 rounded-2xl font-black text-lg shadow-xl shadow-primary/20 uppercase tracking-tight mt-4">{loading ? '...' : 'Tasdiqlash'}</button>
-                    </form>
+
+                    {/* Order Summary Form */}
+                    <div className="card bg-base-100 shadow-4xl p-10 rounded-[3rem] h-fit sticky top-28 border border-base-content/5 border-t-primary border-t-8 overflow-hidden">
+                        <div className="absolute top-[-5%] left-[-5%] w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
+                        <h2 className="text-2xl font-black uppercase tracking-tight text-base-content mb-10 pb-4 border-b border-base-content/5 relative z-10">Xulosa</h2>
+
+                        <div className="space-y-8 relative z-10">
+                            <div className="flex justify-between items-end">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black opacity-30 uppercase tracking-widest leading-none">Jami Summa</span>
+                                    <span className="text-3xl font-black text-primary tracking-tighter mt-1">{totalPrice.toLocaleString()}</span>
+                                </div>
+                                <span className="text-xs font-black opacity-40 uppercase mb-1">so'm</span>
+                            </div>
+
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <div className="form-control">
+                                    <label className="label">
+                                        <span className="label-text text-[10px] font-black uppercase opacity-40 tracking-widest ml-1">Qabul qiluvchi ismi</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        className="input input-bordered w-full h-14 rounded-2xl font-bold bg-base-200/50 border-0 focus:ring-2 focus:ring-primary text-base-content text-lg px-6"
+                                        placeholder="Ismingizni yozing..."
+                                        value={customerName}
+                                        onChange={e => setCustomerName(e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                <button type="submit" disabled={loading || cart.length === 0} className="btn btn-primary w-full h-16 rounded-2xl font-black text-lg text-white shadow-2xl shadow-primary/30 mt-4 uppercase tracking-tight gap-2 group">
+                                    {loading ? <span className="loading loading-spinner"></span> : <>Tasdiqlash <FiCheck size={20} className="group-hover:scale-125 transition-transform" /></>}
+                                </button>
+                                <p className="text-[10px] text-center opacity-30 font-bold uppercase tracking-widest leading-relaxed">Tayyorlanish vaqti: 10-15 daqiqa</p>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -346,74 +475,124 @@ export function OrderConfirmation({ theme, toggleTheme }) {
             await api.post('/feedback', { orderId, rating, comment });
             setFeedbackSubmitted(true);
             setShowFeedbackModal(false);
-            showToast('Rahmat!', 'success');
-        } catch (e) { showToast('Xatolik', 'error'); }
+            showToast('Fikringiz uchun rahmat!', 'success');
+        } catch (e) { showToast('Izoh yuborishda xatolik', 'error'); }
     };
 
-    if (loading) return <LoadingSpinner />;
-    if (!order) return <div className="p-20 text-center font-black opacity-20 uppercase">Buyurtma topilmadi</div>;
+    const getStatusInfo = (status) => {
+        const info = {
+            pending: { text: 'To\'lov kutilmoqda', color: 'text-warning', bg: 'bg-warning/10', icon: <FiClock /> },
+            confirmed: { text: 'Tasdiqlandi', color: 'text-info', bg: 'bg-info/10', icon: <FiCheck /> },
+            preparing: { text: 'Tayyorlanmoqda', color: 'text-primary', bg: 'bg-primary/10', icon: <div className="loading loading-spinner loading-xs"></div> },
+            ready: { text: 'Tayyor!', color: 'text-success', bg: 'bg-success/20', icon: <FiCheck size={18} /> },
+            completed: { text: 'Shunqoringiz topdi!', color: 'text-neutral', bg: 'bg-neutral/10', icon: <FiCheck /> }
+        };
+        return info[status] || { text: status, color: 'text-gray-500', bg: 'bg-gray-100', icon: null };
+    };
+
+    if (loading) return <div className="min-h-screen flex items-center justify-center bg-base-200"><LoadingSpinner /></div>;
+    if (!order) return <div className="p-20 text-center font-black opacity-20 uppercase tracking-widest">Buyurtma topilmadi</div>;
+
+    const statusInfo = getStatusInfo(order.status);
 
     return (
-        <div className="min-h-screen bg-base-200">
-            <nav className="navbar bg-base-100 border-b border-base-300 px-6 backdrop-blur sticky top-0 z-50">
-                <div className="flex-1 font-black uppercase tracking-tighter text-xl ml-2">Buyurtma Tasdiqi</div>
-                <button onClick={toggleTheme} className="btn btn-ghost btn-circle btn-sm">{theme === 'dark' ? <FiSun /> : <FiMoon />}</button>
+        <div className="min-h-screen bg-base-200 transition-colors duration-500">
+            <nav className="navbar bg-base-100/80 border-b border-base-content/5 px-6 backdrop-blur-xl sticky top-0 z-50 h-20">
+                <div className="flex-1">
+                    <button onClick={() => navigate('/menu')} className="btn btn-ghost btn-circle shadow-inner bg-base-200/50"><span className="text-xl">🌭</span></button>
+                    <h1 className="text-xl font-black uppercase tracking-tighter text-base-content ml-3">Buyurtma Tasdiqi</h1>
+                </div>
+                <button onClick={toggleTheme} className="btn btn-ghost btn-circle btn-sm bg-base-200/50">
+                    {theme === 'dark' ? <FiSun className="text-yellow-400" /> : <FiMoon className="text-indigo-600" />}
+                </button>
             </nav>
 
-            <div className="container mx-auto p-4 md:p-12 max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
-                <div className="card bg-base-100 shadow-4xl rounded-[3rem] overflow-hidden border border-base-300">
-                    <div className="card-body text-center p-8 md:p-14">
-                        <div className="w-16 h-16 bg-success/10 text-success rounded-3xl flex items-center justify-center mx-auto mb-6"><FiCheck size={32} /></div>
-                        <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Qabul Qilindi!</h1>
-                        <div className="badge badge-primary font-black px-4 py-3 mb-6 rounded-xl">BUYURTMA #{order.dailyNumber}</div>
+            <div className="container mx-auto p-4 md:p-12 max-w-2xl animate-in fade-in slide-in-from-bottom-12 duration-1000">
+                <div className="card bg-base-100 shadow-4xl rounded-[3.5rem] overflow-hidden border border-base-content/5 relative">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-secondary to-accent"></div>
 
-                        <div className="bg-base-200 p-8 rounded-[2.5rem] inline-block mx-auto mb-8 border border-base-300 shadow-inner">
-                            <div className="bg-white p-3 rounded-2xl shadow-sm"><QRCodeSVG value={qrDataURL} size={200} /></div>
-                            <p className="mt-4 text-[10px] font-black text-base-content/40 uppercase tracking-widest">Kassaga ko'rsating</p>
+                    <div className="card-body text-center p-8 md:p-16">
+                        <div className="w-20 h-20 bg-success/10 text-success rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-success/5 animate-bounce-slow">
+                            <FiCheck size={40} />
                         </div>
 
-                        <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 mb-8 italic font-bold text-sm text-primary">
-                            {order.status === 'pending' && "To'lov uchun kassaga boring"}
-                            {order.status === 'preparing' && "Oshpazlarimiz tayyorlashmoqda..."}
-                            {order.status === 'ready' && "Buyurtmangiz tayyor! Yakka oling!"}
+                        <h1 className="text-4xl font-black uppercase tracking-tighter text-base-content mb-3 leading-none">Rahmat!</h1>
+                        <p className="text-xs font-bold opacity-30 uppercase tracking-[0.3em] mb-8">Buyurtmangiz muvaffaqiyatli qabul qilindi</p>
+
+                        <div className="badge badge-primary font-black px-6 py-4 mb-10 rounded-2xl text-white shadow-xl shadow-primary/20 scale-110">
+                            # {order.dailyNumber}
+                        </div>
+
+                        <div className="bg-base-200/50 p-10 rounded-[3rem] inline-block mx-auto mb-10 border border-base-content/5 shadow-inner group transition-all duration-500 hover:bg-white hover:scale-105">
+                            <div className="p-4 bg-white rounded-[2rem] shadow-2xl"><QRCodeSVG value={qrDataURL} size={200} /></div>
+                            <p className="mt-6 text-[11px] font-black text-base-content opacity-40 uppercase tracking-[0.2em]">Kassaga ko'rsating</p>
+                        </div>
+
+                        <div className={`flex items-center justify-center gap-3 px-8 py-5 rounded-3xl ${statusInfo.bg} ${statusInfo.color} font-black uppercase text-sm tracking-widest mb-10 border border-current/10 shadow-lg shadow-current/5`}>
+                            {statusInfo.icon} {statusInfo.text}
                         </div>
 
                         {(order.status === 'ready' || order.status === 'completed') && !feedbackSubmitted && (
-                            <button onClick={() => setShowFeedbackModal(true)} className="btn btn-accent w-full rounded-2xl gap-2 font-black mb-6"><FiMessageSquare /> FIKR QOLDIRISH</button>
+                            <button onClick={() => setShowFeedbackModal(true)} className="btn btn-accent w-full h-16 rounded-[1.5rem] gap-3 font-black text-white shadow-xl shadow-accent/20 mb-10 text-lg group">
+                                <FiMessageSquare size={20} className="group-hover:rotate-12 transition-transform" /> FIKRINGIZNI QOLDIRING
+                            </button>
                         )}
 
-                        <div className="text-left bg-base-200 p-6 rounded-[2rem] border border-base-300">
-                            {order.items.map((i, idx) => (
-                                <div key={idx} className="flex justify-between py-2 border-b border-base-content/5 text-sm font-bold opacity-80">
-                                    <span>{i.menuItem?.name || 'Mahsulot'} x{i.quantity}</span>
-                                    <span>{(i.price * i.quantity).toLocaleString()}</span>
-                                </div>
-                            ))}
-                            <div className="flex justify-between pt-4 font-black text-xl text-primary"><span>JAMI:</span><span>{order.totalPrice.toLocaleString()} so'm</span></div>
+                        <div className="text-left bg-base-200/50 p-10 rounded-[2.5rem] border border-base-content/5 mb-12">
+                            <h3 className="font-black uppercase text-[10px] tracking-widest opacity-30 mb-6 flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div> Buyurtma tafsilotlari
+                            </h3>
+                            <div className="space-y-4 mb-6">
+                                {order.items.map((i, idx) => (
+                                    <div key={idx} className="flex justify-between items-center text-sm font-bold border-b border-base-content/5 pb-3">
+                                        <span className="text-base-content opacity-80">{i.menuItem?.name || 'Mahsulot'} <span className="text-primary italic">x{i.quantity}</span></span>
+                                        <span className="text-base-content">{(i.price * i.quantity).toLocaleString()} <small className="text-[10px] opacity-30 uppercase">so'm</small></span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex justify-between items-end pt-2">
+                                <span className="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">Yakuniy summa:</span>
+                                <span className="text-3xl font-black text-primary tracking-tighter">{order.totalPrice.toLocaleString()} <small className="text-xs uppercase opacity-40">so'm</small></span>
+                            </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                            <button onClick={() => navigate('/menu')} className="btn btn-primary lg:btn-lg flex-1 rounded-2xl font-black opacity-90">YANA BUYURTMA</button>
-                            <button onClick={() => navigate('/')} className="btn btn-ghost lg:btn-lg flex-1 rounded-2xl opacity-40 font-black">XAYR</button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button onClick={() => navigate('/menu')} className="btn btn-primary h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white tracking-tight">YANA BUYURTMA</button>
+                            <button onClick={() => navigate('/')} className="btn btn-ghost h-14 rounded-2xl font-black uppercase opacity-40 tracking-tight">CHIQISH</button>
                         </div>
                     </div>
                 </div>
             </div>
 
+            {/* Feedback Modal */}
             {showFeedbackModal && (
-                <div className="modal modal-open backdrop-blur-sm">
-                    <div className="modal-box rounded-[3rem] p-10 max-w-sm border border-base-300">
-                        <div className="text-center mb-6">
-                            <div className="w-14 h-14 bg-amber-100 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 rotate-6 shadow-lg shadow-amber-500/10"><FiStar size={28} fill="currentColor" /></div>
-                            <h3 className="text-xl font-black tracking-tight uppercase">Sizga yoqdimi?</h3>
+                <div className="modal modal-open backdrop-blur-xl bg-slate-900/60 transition-all duration-500">
+                    <div className="modal-box bg-base-100 rounded-[3.5rem] p-12 max-w-sm border border-base-content/5 shadow-5xl animate-in zoom-in-95 duration-300">
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 rotate-12 shadow-xl shadow-amber-500/20">
+                                <FiStar size={32} fill="currentColor" />
+                            </div>
+                            <h3 className="text-2xl font-black text-base-content uppercase tracking-tight leading-none mb-2">Sizga yoqdimi?</h3>
+                            <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">Fikringiz biz uchun juda muhim</p>
                         </div>
-                        <div className="flex justify-center gap-2 mb-6">
-                            {[1, 2, 3, 4, 5].map(s => <button key={s} onClick={() => setRating(s)} className={`p-1 transition-all ${rating >= s ? 'text-amber-400 scale-110' : 'text-base-300 opacity-30'}`}><FiStar size={32} fill={rating >= s ? "currentColor" : "none"} /></button>)}
+
+                        <div className="flex justify-center gap-2 mb-10">
+                            {[1, 2, 3, 4, 5].map(s => (
+                                <button key={s} onClick={() => setRating(s)} className={`p-1.5 transition-all duration-300 hover:scale-125 ${rating >= s ? 'text-amber-400 drop-shadow-lg' : 'text-base-300 opacity-30'}`}>
+                                    <FiStar size={36} fill={rating >= s ? "currentColor" : "none"} /></button>
+                            ))}
                         </div>
-                        <textarea className="textarea textarea-bordered w-full h-24 rounded-2xl bg-base-200 border-0 focus:ring-2 focus:ring-primary/40 font-bold mb-6" placeholder="Izohingizni yozib qoldiring..." value={comment} onChange={e => setComment(e.target.value)}></textarea>
-                        <div className="flex gap-3">
-                            <button onClick={() => setShowFeedbackModal(false)} className="btn btn-ghost flex-1 rounded-2xl">BEKOR</button>
-                            <button onClick={handleFeedback} className="btn btn-primary flex-1 rounded-2xl font-black shadow-lg shadow-primary/20">YUBORISH</button>
+
+                        <textarea
+                            className="textarea textarea-bordered w-full h-32 rounded-[2rem] bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold text-sm px-6 py-4 mb-10"
+                            placeholder="Taassurotlaringizni qoldiring..."
+                            value={comment}
+                            onChange={e => setComment(e.target.value)}
+                        ></textarea>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <button onClick={() => setShowFeedbackModal(false)} className="btn btn-ghost rounded-2xl font-black uppercase text-[10px] tracking-widest">BEKOR</button>
+                            <button onClick={handleFeedback} className="btn btn-primary rounded-2xl font-black uppercase text-[10px] tracking-widest text-white shadow-xl shadow-primary/20">YUBORISH</button>
                         </div>
                     </div>
                 </div>
@@ -447,13 +626,15 @@ export function VerifyMagicLink() {
         if (token) verifyToken(token); else setStatus('error');
     }, [searchParams, login, navigate]);
 
-    if (status === 'verifying') return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner text="Tekshirilmoqda..." /></div>;
+    if (status === 'verifying') return <div className="min-h-screen bg-base-200 flex items-center justify-center p-8"><LoadingSpinner text="Tekshirilmoqda..." /></div>;
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-base-200">
-            <div className="text-center p-8 bg-base-100 rounded-[2rem] shadow-xl">
-                <h2 className="text-2xl font-black text-error mb-4">XATOLIK!</h2>
-                <button onClick={() => navigate('/')} className="btn btn-primary rounded-xl">BOSHLANG'ICH SAHIFA</button>
+        <div className="min-h-screen bg-base-200 flex items-center justify-center p-8">
+            <div className="card bg-base-100 shadow-4xl p-16 text-center rounded-[3.5rem] border border-base-content/5 max-w-sm">
+                <div className="w-20 h-20 bg-error/10 text-error rounded-[2rem] flex items-center justify-center mx-auto mb-8"><FiCheck size={40} className="rotate-45" /></div>
+                <h2 className="text-3xl font-black text-base-content mb-3 uppercase tracking-tighter">XATOLIK!</h2>
+                <p className="text-xs font-bold opacity-30 uppercase tracking-widest mb-10 leading-relaxed">Xavfsizlik linki yaroqsiz yoki muddati tugagan</p>
+                <button onClick={() => navigate('/')} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white">BOSHLANG'ICH SAHIFA</button>
             </div>
         </div>
     );
