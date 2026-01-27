@@ -149,13 +149,17 @@ export default function SuperAdminDashboard() {
     };
 
     const handleDelete = async (id, roleOrLabel) => {
+        // Prevents deleting super-admin accounts
         if (roleOrLabel === 'super-admin') {
-            showToast('Super-adminni o\'chirib bo\'lmaydi!', 'error');
+            showToast('Asosiy Super-Adminni o\'chirib bo\'lmaydi!', 'error');
             return;
         }
+
         if (!window.confirm('Haqiqatdan ham o\'chirmoqchimisiz?')) return;
+
         try {
             let endpoint = '';
+            // Ensure endpoint starts with / for relative path to baseURL or uses full relative path
             switch (activeTab) {
                 case 'users': endpoint = `/users/${id}`; break;
                 case 'orders': endpoint = `/orders/${id}`; break;
@@ -163,11 +167,15 @@ export default function SuperAdminDashboard() {
                 case 'feedback': endpoint = `/feedback/${id}`; break;
                 default: return;
             }
+
             await api.delete(endpoint);
             showToast('Muvaffaqiyatli o\'chirildi', 'success');
-            fetchData();
+
+            // Immediately update the local state to wow the user
+            setData(prev => prev.filter(item => item._id !== id));
         } catch (error) {
-            showToast('O\'chirishda xatolik', 'error');
+            console.error('Delete error:', error);
+            showToast(error.response?.data?.error || 'O\'chirishda xatolik yuz berdi', 'error');
         }
     };
 
@@ -305,10 +313,15 @@ export default function SuperAdminDashboard() {
                                 <input type="text" placeholder="Ism-sharif" className="input input-bordered w-full bg-white/5 rounded-2xl" value={userFormData.name} onChange={e => setUserFormData({ ...userFormData, name: e.target.value })} required />
                                 <input type="email" placeholder="Email" className="input input-bordered w-full bg-white/5 rounded-2xl" value={userFormData.email} onChange={e => setUserFormData({ ...userFormData, email: e.target.value })} required />
                                 <input type="password" placeholder={`Parol ${editItem ? '(ixtiyoriy)' : ''}`} className="input input-bordered w-full bg-white/5 rounded-2xl" value={userFormData.password} onChange={e => setUserFormData({ ...userFormData, password: e.target.value })} required={!editItem} />
-                                <select className="select select-bordered w-full bg-white/5 rounded-2xl" value={userFormData.role} onChange={e => setUserFormData({ ...userFormData, role: e.target.value })}>
-                                    <option value="employee">Staff (Hodim)</option>
-                                    <option value="boss">Boss (Boshliq)</option>
-                                    <option value="super-admin">Admin (S.Admin)</option>
+                                <select
+                                    className="select select-bordered w-full bg-slate-800 text-white rounded-2xl border-white/10"
+                                    value={userFormData.role}
+                                    onChange={e => setUserFormData({ ...userFormData, role: e.target.value })}
+                                >
+                                    <option value="employee" className="bg-slate-900 text-white">Staff (Hodim)</option>
+                                    <option value="boss" className="bg-slate-900 text-white">Boss (Boshliq)</option>
+                                    <option value="super-admin" className="bg-slate-900 text-white">Admin (S.Admin)</option>
+                                    <option value="customer" className="bg-slate-900 text-white">Mijoz (Client)</option>
                                 </select>
                                 <div className="flex gap-4 mt-8">
                                     <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost flex-1 rounded-2xl">BEKOR</button>

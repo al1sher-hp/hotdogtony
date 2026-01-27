@@ -31,15 +31,24 @@ import Toast from './components/shared/Toast';
 
 function AppContent() {
     const { user, loading } = useAuth();
+    const [theme, setTheme] = React.useState(localStorage.getItem('theme') || 'light');
 
     useEffect(() => {
         // Connect socket
         socket.connect();
 
+        // Apply theme
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+
         return () => {
             socket.disconnect();
         };
-    }, []);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    };
 
     if (loading) {
         return (
@@ -54,16 +63,16 @@ function AppContent() {
             <Toast />
             <Routes>
                 {/* Public Customer Routes */}
-                <Route path="/" element={<CustomerLanding />} />
-                <Route path="/menu" element={<Menu />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+                <Route path="/" element={<CustomerLanding theme={theme} toggleTheme={toggleTheme} />} />
+                <Route path="/menu" element={<Menu theme={theme} toggleTheme={toggleTheme} />} />
+                <Route path="/cart" element={<Cart theme={theme} toggleTheme={toggleTheme} />} />
+                <Route path="/order-confirmation/:orderId" element={<OrderConfirmation theme={theme} toggleTheme={toggleTheme} />} />
                 <Route path="/verify-magic-link" element={<VerifyMagicLink />} />
 
                 {/* Customer Protected Routes */}
                 <Route
                     path="/profile"
-                    element={user?.role === 'customer' ? <CustomerProfile /> : <Navigate to="/" />}
+                    element={user?.role === 'customer' ? <CustomerProfile theme={theme} toggleTheme={toggleTheme} /> : <Navigate to="/" />}
                 />
 
                 {/* Employee Routes */}
