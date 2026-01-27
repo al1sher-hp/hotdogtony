@@ -4,6 +4,7 @@ const Order = require('../models/Order');
 const MenuItem = require('../models/MenuItem');
 const auth = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
+const { v4: uuidv4 } = require('uuid');
 const { generateOrderQR, verifyQRCode } = require('../utils/qrGenerator');
 
 // Create new order (customer)
