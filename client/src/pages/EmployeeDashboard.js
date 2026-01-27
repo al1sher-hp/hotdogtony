@@ -12,7 +12,7 @@ export default function EmployeeDashboard() {
     const [loading, setLoading] = useState(true);
     const [showScanner, setShowScanner] = useState(false);
     const [scannerInstance, setScannerInstance] = useState(null);
-    const [isProcessing, setIsProcessing] = useState(false);
+    const isProcessingRef = React.useRef(false);
     const { logout } = useAuth();
 
     const fetchOrders = useCallback(async () => {
@@ -27,9 +27,10 @@ export default function EmployeeDashboard() {
     }, []);
 
     const onScanSuccess = useCallback(async (decodedText) => {
-        if (isProcessing) return; // Ignore if already processing
+        // SYNCHRONOUS LOCK: isProcessingRef changes instantly
+        if (isProcessingRef.current) return;
 
-        setIsProcessing(true);
+        isProcessingRef.current = true;
         try {
             const response = await api.post('/orders/verify-qr', { qrData: decodedText });
             showToast(`Buyurtma #${response.data.order.dailyNumber} TASDIQLANDI`, 'success');
@@ -44,11 +45,16 @@ export default function EmployeeDashboard() {
             setShowScanner(false);
             fetchOrders();
         } catch (error) {
-            showToast('QR kod xato yoki allaqachon tasdiqlangan', 'error');
-        } finally {
-            setIsProcessing(false);
+            // Only show toast if it's not a common "already processed" error
+            // to avoid duplicates even in error state
+            showToast(error.response?.data?.error || 'QR kod xato', 'error');
+
+            // Give 2 seconds before allowing next scan if error occurs
+            setTimeout(() => {
+                isProcessingRef.current = false;
+            }, 2000);
         }
-    }, [fetchOrders, scannerInstance, isProcessing]);
+    }, [fetchOrders, scannerInstance]);
 
     const startScanner = useCallback(async () => {
         try {
