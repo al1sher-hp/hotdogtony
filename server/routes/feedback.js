@@ -108,4 +108,18 @@ router.get('/order/:orderId', async (req, res) => {
     }
 });
 
+// Delete feedback (super-admin only)
+router.delete('/:id', auth, roleCheck('super-admin'), async (req, res) => {
+    try {
+        const feedback = await Feedback.findByIdAndDelete(req.params.id);
+        if (!feedback) {
+            return res.status(404).json({ error: 'Feedback not found' });
+        }
+        res.json({ message: 'Feedback deleted successfully' });
+    } catch (error) {
+        console.error('Delete feedback error:', error);
+        res.status(500).json({ error: 'Failed to delete feedback' });
+    }
+});
+
 module.exports = router;

@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { showToast } from '../components/shared/Toast';
-import { FiUsers, FiShoppingBag, FiBox, FiMessageSquare, FiLogOut, FiTrash2, FiShield, FiPlus, FiEdit2, FiCheck } from 'react-icons/fi';
+import { FiUsers, FiShoppingBag, FiBox, FiMessageSquare, FiLogOut, FiTrash2, FiShield, FiPlus, FiEdit2, FiCheck, FiX, FiUpload } from 'react-icons/fi';
 
 export default function SuperAdminDashboard() {
     const [activeTab, setActiveTab] = useState('users');
@@ -14,12 +14,16 @@ export default function SuperAdminDashboard() {
     const [editItem, setEditItem] = useState(null);
     const { user: currentUser, logout } = useAuth();
 
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        role: 'employee'
+    // User Form State
+    const [userFormData, setUserFormData] = useState({
+        name: '', email: '', password: '', role: 'employee'
     });
+
+    // Menu Form State
+    const [menuFormData, setMenuFormData] = useState({
+        name: '', description: '', price: '', category: 'classic', image: '', available: true
+    });
+    const [uploading, setUploading] = useState(false);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -29,12 +33,11 @@ export default function SuperAdminDashboard() {
                 case 'users': endpoint = '/users'; break;
                 case 'orders': endpoint = '/orders'; break;
                 case 'menu': endpoint = '/menu'; break;
-                case 'ingredients': endpoint = '/ingredients'; break;
                 case 'feedback': endpoint = '/feedback'; break;
                 default: endpoint = '/users';
             }
             const res = await api.get(endpoint);
-            const result = res.data.users || res.data.orders || res.data.menuItems || res.data.ingredients || res.data.feedbacks || [];
+            const result = res.data.users || res.data.orders || res.data.menuItems || res.data.feedbacks || [];
             setData(result);
         } catch (error) {
             showToast('Ma\'lumotlarni yuklab bo\'lmadi', 'error');
@@ -48,46 +51,105 @@ export default function SuperAdminDashboard() {
     }, [fetchData]);
 
     const handleOpenModal = (item = null) => {
-        if (item) {
-            setEditItem(item);
-            setFormData({
-                name: item.name || '',
-                email: item.email || '',
-                password: '', // Parolni ko'rsatmaymiz
-                role: item.role || 'employee'
-            });
-        } else {
-            setEditItem(null);
-            setFormData({ name: '', email: '', password: '', role: 'employee' });
+        if (activeTab === 'users') {
+            if (item) {
+                setEditItem(item);
+                setUserFormData({
+                    name: item.name || '',
+                    email: item.email || '',
+                    password: '',
+                    role: item.role || 'employee'
+                });
+            } else {
+                setEditItem(null);
+                setUserFormData({ name: '', email: '', password: '', role: 'employee' });
+            }
+        } else if (activeTab === 'menu') {
+            if (item) {
+                setEditItem(item);
+                setMenuFormData({
+                    name: item.name || '',
+                    description: item.description || '',
+                    price: item.price || '',
+                    category: item.category || 'classic',
+                    image: item.image || '',
+                    available: item.available ?? true
+                });
+            } else {
+                setEditItem(null);
+                setMenuFormData({ name: '', description: '', price: '', category: 'classic', image: '', available: true });
+            }
         }
         setShowModal(true);
     };
 
-    const handleSubmit = async (e) => {
+    const handleUserSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
         try {
             if (editItem) {
-                // Update
-                await api.patch(`/users/${editItem._id}`, formData);
-                showToast('Ma\'lumotlar yangilandi!', 'success');
+                await api.patch(`/users/${editItem._id}`, userFormData);
+                showToast('Foydalanuvchi yangilandi!', 'success');
             } else {
-                // Create
-                await api.post('/users', formData);
+                await api.post('/users', userFormData);
                 showToast('Foydalanuvchi yaratildi!', 'success');
             }
             setShowModal(false);
             fetchData();
         } catch (error) {
-            const errorMsg = error.response?.data?.error || 'Xatolik yuz berdi';
-            showToast(errorMsg, 'error');
+            showToast(error.response?.data?.error || 'Xatolik', 'error');
         } finally {
             setSubmitting(false);
         }
     };
 
-    const handleDelete = async (id, role) => {
-        if (role === 'super-admin') {
+    const handleMenuSubmit = async (e) => {
+        e.preventDefault();
+        if (!menuFormData.image) return showToast('Rasm yuklash shart!', 'error');
+        setSubmitting(true);
+        try {
+            if (editItem) {
+                await api.patch(`/menu/${editItem._id}`, menuFormData);
+                showToast('Mahsulot yangilandi!', 'success');
+            } else {
+                await api.post('/menu', menuFormData);
+                showToast('Mahsulot yaratildi!', 'success');
+            }
+            setShowModal(false);
+            fetchData();
+        } catch (error) {
+            showToast(error.response?.data?.error || 'Xatolik', 'error');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onloadend = async () => {
+                try {
+                    const res = await api.post('/menu/upload-image', { image: reader.result });
+                    setMenuFormData(prev => ({ ...prev, image: res.data.imageUrl }));
+                    showToast('Rasm muvaffaqiyatli yuklandi', 'success');
+                } catch (err) {
+                    showToast('Rasm yuklashda xatolik', 'error');
+                } finally {
+                    setUploading(false);
+                }
+            };
+        } catch (error) {
+            showToast('Faylni o\'qishda xatolik', 'error');
+            setUploading(false);
+        }
+    };
+
+    const handleDelete = async (id, roleOrLabel) => {
+        if (roleOrLabel === 'super-admin') {
             showToast('Super-adminni o\'chirib bo\'lmaydi!', 'error');
             return;
         }
@@ -98,7 +160,6 @@ export default function SuperAdminDashboard() {
                 case 'users': endpoint = `/users/${id}`; break;
                 case 'orders': endpoint = `/orders/${id}`; break;
                 case 'menu': endpoint = `/menu/${id}`; break;
-                case 'ingredients': endpoint = `/ingredients/${id}`; break;
                 case 'feedback': endpoint = `/feedback/${id}`; break;
                 default: return;
             }
@@ -111,40 +172,33 @@ export default function SuperAdminDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-red-500 selection:text-white">
-            {/* Elegant Navbar */}
+        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
             <nav className="navbar bg-slate-900/40 border-b border-white/5 px-6 sticky top-0 z-40 backdrop-blur-xl">
                 <div className="flex-1">
-                    <div className="flex items-center gap-3 group cursor-default">
-                        <div className="p-2.5 bg-gradient-to-br from-red-500 to-red-700 rounded-xl shadow-lg shadow-red-500/20 group-hover:scale-110 transition-transform">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-gradient-to-br from-red-500 to-red-700 rounded-xl shadow-lg border border-red-400/20">
                             <FiShield className="text-white text-lg" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-base font-black tracking-tight leading-none text-white">SUPER ADMIN</span>
-                            <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-red-500/80 mt-1">Master Control</span>
+                            <span className="text-base font-black tracking-tight leading-none text-white uppercase">Super Admin</span>
+                            <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-red-500 mt-1">Sistemani boshqarish</span>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="hidden md:flex flex-col items-end mr-2">
-                        <span className="text-xs font-bold text-white">{currentUser?.name}</span>
-                        <span className="text-[10px] text-slate-500 uppercase">{currentUser?.role}</span>
-                    </div>
                     <button onClick={logout} className="btn btn-ghost btn-sm bg-white/5 hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all gap-2 border-0">
                         <FiLogOut /> <span className="hidden sm:inline">Chiqish</span>
                     </button>
                 </div>
             </nav>
 
-            <div className="container mx-auto px-4 py-8 max-w-7xl animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {/* Modern Tab System */}
+            <div className="container mx-auto px-4 py-8 max-w-7xl">
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
                     <div className="inline-flex p-1 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm overflow-x-auto max-w-full">
                         {[
                             { id: 'users', label: 'Foydalanuvchilar', icon: <FiUsers /> },
                             { id: 'orders', label: 'Buyurtmalar', icon: <FiShoppingBag /> },
                             { id: 'menu', label: 'Menu', icon: <FiBox /> },
-                            { id: 'ingredients', label: 'Zaxira', icon: <FiBox /> },
                             { id: 'feedback', label: 'Izohlar', icon: <FiMessageSquare /> },
                         ].map(tab => (
                             <button
@@ -157,127 +211,77 @@ export default function SuperAdminDashboard() {
                         ))}
                     </div>
 
-                    {activeTab === 'users' && (
+                    {(activeTab === 'users' || activeTab === 'menu') && (
                         <button
                             onClick={() => handleOpenModal()}
                             className="btn btn-error btn-md rounded-2xl gap-2 font-black shadow-xl shadow-red-500/20 w-full lg:w-auto"
                         >
-                            <FiPlus className="text-lg" /> Foydalanuvchi Qo'shish
+                            <FiPlus className="text-lg" /> {activeTab === 'users' ? 'Xodim' : 'Mahsulot'} Qo'shish
                         </button>
                     )}
                 </div>
 
-                {/* Data Container */}
-                <div className="bg-slate-900/30 rounded-[2.5rem] border border-white/5 overflow-hidden backdrop-blur-2xl shadow-3xl">
-                    <div className="p-8 border-b border-white/5 flex flex-col sm:flex-row justify-between items-center bg-gradient-to-r from-white/5 to-transparent gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-1.5 h-10 bg-red-500 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.5)]"></div>
-                            <div>
-                                <h2 className="text-2xl font-black capitalize tracking-tight text-white">{activeTab} Boshqaruvi</h2>
-                                <p className="text-xs text-slate-500 font-medium">Barcha ma'lumotlar real vaqtda yangilanadi</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <span className="px-4 py-2 bg-slate-900 rounded-full border border-white/5 font-mono text-[10px] text-slate-400">
-                                RECORDS_FOUND: {data.length}
-                            </span>
-                        </div>
+                <div className="bg-slate-900/30 rounded-[2.5rem] border border-white/5 overflow-hidden backdrop-blur-2xl">
+                    <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-white/5 to-transparent">
+                        <h2 className="text-2xl font-black capitalize text-white">{activeTab} Boshqaruvi</h2>
+                        <span className="px-4 py-2 bg-slate-900 rounded-full border border-white/5 font-mono text-[10px] text-slate-400 uppercase">Jami: {data.length}</span>
                     </div>
 
                     {loading ? (
                         <div className="p-32 flex justify-center"><LoadingSpinner /></div>
                     ) : (data.length === 0 ? (
-                        <div className="p-32 text-center opacity-40">
-                            <div className="text-6xl mb-4">📂</div>
-                            <p className="font-bold italic text-slate-400">Hech qanday ma'lumot qoldirilmadi.</p>
-                        </div>
+                        <div className="p-32 text-center opacity-30 italic">Ma'lumotlar mavjud emas</div>
                     ) : (
                         <div className="overflow-x-auto p-4">
                             <table className="table w-full border-separate border-spacing-y-3">
-                                <thead className="text-slate-500 text-[11px] font-black uppercase tracking-[0.15em]">
+                                <thead className="text-slate-500 text-[11px] font-black uppercase tracking-widest">
                                     <tr className="border-0">
-                                        {activeTab === 'users' && <><th>Xodim / Email</th><th>Roli & Holati</th><th className="hidden md:table-cell">Ro'yxat. Sana</th></>}
+                                        {activeTab === 'users' && <><th>Xodim</th><th>Email</th><th>Rol</th></>}
                                         {activeTab === 'orders' && <><th>ID</th><th>Mijoz</th><th>Summa</th><th>Holat</th></>}
-                                        {activeTab === 'menu' && <><th>Mahsulot</th><th>Narxi</th><th>Kategoriya</th></>}
-                                        {activeTab === 'ingredients' && <><th>Ingredient</th><th>Qoldiq</th><th>Birlik</th></>}
-                                        {activeTab === 'feedback' && <><th>Rating</th><th>Izoh</th><th className="hidden sm:table-cell">Buyurtma</th></>}
+                                        {activeTab === 'menu' && <><th>Rasm</th><th>Nomi</th><th>Narxi</th><th>Kategoriya</th></>}
+                                        {activeTab === 'feedback' && <><th>Reyting</th><th>Izoh</th><th>Buyurtma</th></>}
                                         <th className="text-right px-6">Amallar</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {data.map((item) => (
-                                        <tr key={item._id} className="bg-white/5 hover:bg-white/[0.08] transition-all rounded-3xl group">
+                                        <tr key={item._id} className="bg-white/5 hover:bg-white/10 transition-all rounded-3xl">
                                             {activeTab === 'users' && (
                                                 <>
-                                                    <td className="rounded-l-3xl">
-                                                        <div className="flex flex-col">
-                                                            <span className="font-bold text-white group-hover:text-red-400 transition-colors uppercase">{item.name}</span>
-                                                            <span className="text-[11px] text-slate-500 font-medium">{item.email}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div className={`badge badge-sm rounded-lg font-black tracking-widest text-[9px] py-3 px-3 border-0 shadow-lg ${item.role === 'super-admin' ? 'bg-red-500/20 text-red-400 shadow-red-500/10' :
-                                                            item.role === 'boss' ? 'bg-amber-500/20 text-amber-400 shadow-amber-500/10' :
-                                                                item.role === 'employee' ? 'bg-blue-500/20 text-blue-400 shadow-blue-500/10' :
-                                                                    'bg-slate-700/50 text-slate-400'
-                                                            }`}>
-                                                            {item.role.toUpperCase()}
-                                                        </div>
-                                                    </td>
-                                                    <td className="text-xs text-slate-600 font-bold hidden md:table-cell">{new Date(item.createdAt).toLocaleDateString()}</td>
+                                                    <td className="font-bold text-white uppercase rounded-l-3xl">{item.name}</td>
+                                                    <td className="text-slate-400">{item.email}</td>
+                                                    <td><div className="badge badge-sm rounded-lg font-black text-[9px] bg-red-500/20 text-red-500 border-0">{item.role.toUpperCase()}</div></td>
                                                 </>
                                             )}
                                             {activeTab === 'orders' && (
                                                 <>
                                                     <td className="font-black text-red-500 rounded-l-3xl">#{item.dailyNumber}</td>
                                                     <td className="font-bold">{item.customerName}</td>
-                                                    <td className="font-black text-white">{item.totalPrice?.toLocaleString()} s.</td>
-                                                    <td><div className="badge badge-outline badge-xs border-white/20 text-[9px] opacity-70 uppercase font-black">{item.status}</div></td>
+                                                    <td className="font-black text-emerald-400">{item.totalPrice?.toLocaleString()} so'm</td>
+                                                    <td><div className="badge badge-outline badge-xs opacity-50 uppercase font-black">{item.status}</div></td>
                                                 </>
                                             )}
                                             {activeTab === 'menu' && (
                                                 <>
-                                                    <td className="font-bold rounded-l-3xl">{item.name}</td>
-                                                    <td className="text-emerald-400 font-bold">{item.price?.toLocaleString()} s.</td>
+                                                    <td className="rounded-l-3xl"><img src={item.image} alt="" className="w-10 h-10 rounded-xl object-cover" /></td>
+                                                    <td className="font-bold">{item.name}</td>
+                                                    <td className="text-emerald-400 font-bold">{item.price?.toLocaleString()} so'm</td>
                                                     <td><span className="opacity-40 text-[10px] font-bold uppercase">{item.category}</span></td>
-                                                </>
-                                            )}
-                                            {activeTab === 'ingredients' && (
-                                                <>
-                                                    <td className="font-bold rounded-l-3xl">{item.name}</td>
-                                                    <td>
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-1.5 h-1.5 rounded-full ${item.currentStock <= item.minStock ? 'bg-red-500 animate-ping' : 'bg-green-500'}`}></div>
-                                                            <span className={item.currentStock <= item.minStock ? 'text-red-400 font-black' : 'font-bold'}>{item.currentStock}</span>
-                                                        </div>
-                                                    </td>
-                                                    <td className="opacity-40 font-bold text-xs uppercase">{item.unit}</td>
                                                 </>
                                             )}
                                             {activeTab === 'feedback' && (
                                                 <>
-                                                    <td className="rounded-l-3xl"><div className="flex text-amber-400 font-black text-sm">⭐ {item.rating}</div></td>
-                                                    <td className="max-w-xs truncate text-[11px] italic text-slate-400">{item.comment}</td>
-                                                    <td className="opacity-40 text-[10px] font-black hidden sm:table-cell">ORD_#{item.order?.dailyNumber || '???'}</td>
+                                                    <td className="rounded-l-3xl text-amber-500 font-black">⭐ {item.rating}</td>
+                                                    <td className="max-w-xs truncate italic text-slate-400">{item.comment}</td>
+                                                    <td className="opacity-40 font-black tracking-tighter text-[10px]">BUYURTMA #{item.order?.dailyNumber || '???'}</td>
                                                 </>
                                             )}
                                             <td className="text-right rounded-r-3xl px-6">
-                                                <div className="flex justify-end gap-1 opacity-40 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
-                                                    {activeTab === 'users' && (
-                                                        <button
-                                                            onClick={() => handleOpenModal(item)}
-                                                            className="btn btn-ghost btn-xs text-blue-400 hover:bg-blue-500/10 rounded-lg p-1"
-                                                        >
-                                                            <FiEdit2 />
-                                                        </button>
+                                                <div className="flex justify-end gap-2">
+                                                    {(activeTab === 'users' || activeTab === 'menu') && (
+                                                        <button onClick={() => handleOpenModal(item)} className="btn btn-ghost btn-xs text-blue-400 hover:bg-blue-400/10"><FiEdit2 /></button>
                                                     )}
-                                                    <button
-                                                        onClick={() => handleDelete(item._id, item.role)}
-                                                        disabled={item.role === 'super-admin' && item._id === currentUser.id}
-                                                        className="btn btn-ghost btn-xs text-red-500 hover:bg-red-500/10 rounded-lg p-1"
-                                                    >
-                                                        <FiTrash2 />
-                                                    </button>
+                                                    <button onClick={() => handleDelete(item._id, item.role)} className="btn btn-ghost btn-xs text-red-500 hover:bg-red-500/10"><FiTrash2 /></button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -289,90 +293,53 @@ export default function SuperAdminDashboard() {
                 </div>
             </div>
 
-            {/* Premium Create/Edit Modal */}
             {showModal && (
-                <div className="modal modal-open bg-slate-950/90 backdrop-blur-2xl transition-all duration-300">
-                    <div className="modal-box bg-slate-900 border border-white/10 rounded-[3rem] p-10 shadow-4xl overflow-visible max-w-md relative">
-                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 bg-gradient-to-br from-red-500 to-red-700 rounded-[2rem] shadow-2xl flex items-center justify-center border-4 border-slate-900 rotate-12 group hover:rotate-0 transition-transform">
-                            <FiUsers className="text-white text-4xl" />
+                <div className="modal modal-open bg-slate-950/90 backdrop-blur-2xl">
+                    <div className="modal-box bg-slate-900 border border-white/10 rounded-[3rem] p-10 max-w-md shadow-4xl overflow-visible">
+                        <div className="text-center mb-8">
+                            <h3 className="text-3xl font-black text-white uppercase">{editItem ? 'Tahrirlash' : 'Yangi Qo\'shish'}</h3>
                         </div>
 
-                        <div className="mt-8 text-center mb-8">
-                            <h3 className="text-3xl font-black tracking-tighter text-white uppercase">{editItem ? 'Tahrirlash' : 'Yangi Xodim'}</h3>
-                            <p className="text-slate-500 text-xs font-bold mt-1 uppercase tracking-widest">{editItem ? "Mavjud ma'lumotlarni o'zgartirish" : "Tizimga yangi ro'yxat qo'shish"}</p>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-black text-slate-500 ml-2 tracking-widest">To'liq ism-sharif</label>
-                                <div className="relative group">
-                                    <input
-                                        type="text"
-                                        className="input bg-white/5 border-white/5 focus:border-red-500/50 focus:bg-white/10 rounded-2xl w-full h-14 pl-5 font-bold transition-all outline-none"
-                                        value={formData.name}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="Ali Valiyev"
-                                        required
-                                    />
-                                    <div className="absolute right-5 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity"><FiCheck className="text-red-500" /></div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-black text-slate-500 ml-2 tracking-widest">Elektron Pochta</label>
-                                <input
-                                    type="email"
-                                    className="input bg-white/5 border-white/5 focus:border-red-500/50 focus:bg-white/10 rounded-2xl w-full h-14 pl-5 font-bold transition-all outline-none"
-                                    value={formData.email}
-                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    placeholder="example@mail.uz"
-                                    required
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-black text-slate-500 ml-2 tracking-widest">Yangi Maxfiy Parol {editItem && "(ixtiyoriy)"}</label>
-                                <input
-                                    type="password"
-                                    className="input bg-white/5 border-white/5 focus:border-red-500/50 focus:bg-white/10 rounded-2xl w-full h-14 pl-5 font-bold transition-all outline-none"
-                                    value={formData.password}
-                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                    placeholder="••••••••"
-                                    required={!editItem}
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-[10px] uppercase font-black text-slate-500 ml-2 tracking-widest">Vazifasi & Huquqlari</label>
-                                <select
-                                    className="select bg-white/5 border-white/5 focus:border-red-500/50 rounded-2xl w-full h-14 pl-5 font-bold transition-all outline-none appearance-none"
-                                    value={formData.role}
-                                    onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                >
-                                    <option value="employee" className="bg-slate-900">ODDIY HODIM (STAFF)</option>
-                                    <option value="boss" className="bg-slate-900">BOSHLIQ (OWNER)</option>
-                                    <option value="customer" className="bg-slate-900">MIJOZ (CLIENT)</option>
-                                    <option value="super-admin" className="bg-slate-900">S.ADMIN (ROOT)</option>
+                        {activeTab === 'users' ? (
+                            <form onSubmit={handleUserSubmit} className="space-y-4">
+                                <input type="text" placeholder="Ism-sharif" className="input input-bordered w-full bg-white/5 rounded-2xl" value={userFormData.name} onChange={e => setUserFormData({ ...userFormData, name: e.target.value })} required />
+                                <input type="email" placeholder="Email" className="input input-bordered w-full bg-white/5 rounded-2xl" value={userFormData.email} onChange={e => setUserFormData({ ...userFormData, email: e.target.value })} required />
+                                <input type="password" placeholder={`Parol ${editItem ? '(ixtiyoriy)' : ''}`} className="input input-bordered w-full bg-white/5 rounded-2xl" value={userFormData.password} onChange={e => setUserFormData({ ...userFormData, password: e.target.value })} required={!editItem} />
+                                <select className="select select-bordered w-full bg-white/5 rounded-2xl" value={userFormData.role} onChange={e => setUserFormData({ ...userFormData, role: e.target.value })}>
+                                    <option value="employee">Staff (Hodim)</option>
+                                    <option value="boss">Boss (Boshliq)</option>
+                                    <option value="super-admin">Admin (S.Admin)</option>
                                 </select>
-                            </div>
-
-                            <div className="flex gap-4 pt-6">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowModal(false)}
-                                    className="btn flex-1 bg-white/5 hover:bg-white/10 border-0 text-slate-400 h-14 rounded-2xl font-black transition-all"
-                                >
-                                    BEKOR
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={submitting}
-                                    className="btn flex-[2] btn-error h-14 rounded-2xl shadow-2xl shadow-red-500/30 font-black border-0"
-                                >
-                                    {submitting ? <span className="loading loading-spinner"></span> : (editItem ? 'YANGILASH' : 'TASDIQLASH')}
-                                </button>
-                            </div>
-                        </form>
+                                <div className="flex gap-4 mt-8">
+                                    <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost flex-1 rounded-2xl">BEKOR</button>
+                                    <button type="submit" disabled={submitting} className="btn btn-error flex-2 rounded-2xl font-black">{submitting ? '...' : 'SAQLASH'}</button>
+                                </div>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleMenuSubmit} className="space-y-4">
+                                <input placeholder="Nomi" className="input input-bordered w-full bg-white/5 rounded-2xl" value={menuFormData.name} onChange={e => setMenuFormData({ ...menuFormData, name: e.target.value })} required />
+                                <textarea placeholder="Tavsif" className="textarea textarea-bordered w-full bg-white/5 rounded-2xl" value={menuFormData.description} onChange={e => setMenuFormData({ ...menuFormData, description: e.target.value })} required />
+                                <input type="number" placeholder="Narxi" className="input input-bordered w-full bg-white/5 rounded-2xl" value={menuFormData.price} onChange={e => setMenuFormData({ ...menuFormData, price: e.target.value })} required />
+                                <select className="select select-bordered w-full bg-white/5 rounded-2xl" value={menuFormData.category} onChange={e => setMenuFormData({ ...menuFormData, category: e.target.value })}>
+                                    <option value="classic">Classic</option>
+                                    <option value="premium">Premium</option>
+                                    <option value="combo">Combo</option>
+                                    <option value="drinks">Drinks</option>
+                                    <option value="sides">Sides</option>
+                                </select>
+                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl">
+                                    {menuFormData.image && <img src={menuFormData.image} alt="" className="w-12 h-12 rounded-lg object-cover" />}
+                                    <label className="btn btn-ghost btn-sm gap-2">
+                                        <FiUpload /> {uploading ? 'Yuklanmoqda...' : 'Rasm Tanlash'}
+                                        <input type="file" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                                    </label>
+                                </div>
+                                <div className="flex gap-4 mt-8">
+                                    <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost flex-1 rounded-2xl">BEKOR</button>
+                                    <button type="submit" disabled={submitting || uploading} className="btn btn-error flex-2 rounded-2xl font-black">{submitting ? '...' : 'SAQLASH'}</button>
+                                </div>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}

@@ -313,4 +313,18 @@ router.get('/my/orders', auth, roleCheck('customer'), async (req, res) => {
     }
 });
 
+// Delete order (super-admin only)
+router.delete('/:id', auth, roleCheck('super-admin'), async (req, res) => {
+    try {
+        const order = await Order.findByIdAndDelete(req.params.id);
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+        res.json({ message: 'Order deleted successfully' });
+    } catch (error) {
+        console.error('Delete order error:', error);
+        res.status(500).json({ error: 'Failed to delete order' });
+    }
+});
+
 module.exports = router;

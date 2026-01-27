@@ -24,10 +24,7 @@ const menuItemSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    ingredients: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Ingredient'
-    }],
+
     available: {
         type: Boolean,
         default: true

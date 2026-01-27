@@ -11,7 +11,7 @@ import api from '../utils/api';
 import socket from '../utils/socket';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2 } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiLogOut, FiMessageSquare, FiStar } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 
 // ==================================================================
@@ -289,7 +289,7 @@ export function Menu() {
     const [cart, setCart] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
 
     const categories = [
         { value: 'all', label: 'Hammasi' },
@@ -343,26 +343,37 @@ export function Menu() {
 
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+        showToast('Tizimdan chiqdingiz', 'info');
+    };
+
     if (loading) return <LoadingSpinner />;
 
     return (
-        <div className="min-h-screen bg-base-200">
+        <div className="min-h-screen bg-base-200 text-slate-800">
             {/* Navbar */}
-            <div className="navbar bg-primary text-white shadow-lg">
+            <div className="navbar bg-primary text-white shadow-lg sticky top-0 z-50">
                 <div className="flex-1">
-                    <h1 className="text-2xl font-bold">🌭 Hotdog Shahobcha</h1>
+                    <h1 className="text-xl md:text-2xl font-black tracking-tighter ml-2">🌭 HOTDOG SHAHOBCHA</h1>
                 </div>
-                <div className="flex-none gap-2">
+                <div className="flex-none gap-1 md:gap-2">
                     <button onClick={() => navigate('/cart')} className="btn btn-ghost relative">
-                        <FiShoppingCart className="w-6 h-6" />
+                        <FiShoppingCart className="w-5 h-5" />
                         {cartCount > 0 && (
-                            <span className="badge badge-secondary absolute -top-2 -right-2">{cartCount}</span>
+                            <span className="badge badge-secondary badge-sm absolute -top-1 -right-1">{cartCount}</span>
                         )}
                     </button>
                     {user && (
-                        <button onClick={() => navigate('/profile')} className="btn btn-ghost">
-                            <FiUser className="w-6 h-6" />
-                        </button>
+                        <div className="flex gap-1 md:gap-2">
+                            <button onClick={() => navigate('/profile')} className="btn btn-ghost">
+                                <FiUser className="w-5 h-5" />
+                            </button>
+                            <button onClick={handleLogout} className="btn btn-ghost">
+                                <FiLogOut className="w-5 h-5" />
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -583,15 +594,17 @@ export function Cart() {
     );
 }
 
-// ==================================================================
-// ORDER CONFIRMATION PAGE
-// ==================================================================
 export function OrderConfirmation() {
     const { orderId } = useParams();
     const [order, setOrder] = useState(null);
     const [qrDataURL, setQrDataURL] = useState('');
     const [loading, setLoading] = useState(true);
+    const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
+    const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
     const navigate = useNavigate();
+    const { logout } = useAuth();
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
@@ -606,6 +619,11 @@ export function OrderConfirmation() {
                     timestamp: Date.now()
                 });
                 setQrDataURL(qrPayload);
+
+                // Check if feedback already exists
+                if (response.data.order.feedback) {
+                    setFeedbackSubmitted(true);
+                }
             } catch (error) {
                 showToast('Buyurtma topilmadi', 'error');
             } finally {
@@ -626,7 +644,7 @@ export function OrderConfirmation() {
             if (readyOrder._id === orderId) {
                 setOrder(readyOrder);
                 showToast('🎉 Buyurtmangiz tayyor!', 'success');
-                // Show feedback modal here (implement later)
+                setShowFeedbackModal(true);
             }
         });
 
@@ -636,13 +654,30 @@ export function OrderConfirmation() {
         };
     }, [orderId]);
 
+    const handleFeedback = async () => {
+        try {
+            await api.post('/feedback', { orderId, rating, comment });
+            showToast('Fikringiz uchun rahmat!', 'success');
+            setFeedbackSubmitted(true);
+            setShowFeedbackModal(false);
+        } catch (error) {
+            showToast('Xatolik yuz berdi', 'error');
+        }
+    };
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+        showToast('Tizimdan chiqdingiz', 'info');
+    };
+
     const getStatusText = (status) => {
         const statuses = {
             pending: 'Kutilmoqda',
             confirmed: 'Tasdiqlandi',
             preparing: 'Tayyorlanmoqda',
             ready: 'Tayyor',
-            completed: 'Yakunlandi'
+            completed: 'Topshirildi'
         };
         return statuses[status] || status;
     };
@@ -662,25 +697,58 @@ export function OrderConfirmation() {
     if (!order) return <div>Buyurtma topilmadi</div>;
 
     return (
-        <div className="min-h-screen bg-base-200 py-8">
-            <div className="container mx-auto px-4 max-w-2xl">
-                <div className="card bg-base-100 shadow-xl">
-                    <div className="card-body text-center">
-                        <h1 className="text-4xl font-bold text-success mb-2">✅ Buyurtma Qabul Qilindi!</h1>
-                        <div className="badge badge-lg badge-primary mb-4">Buyurtma #{order.dailyNumber}</div>
+        <div className="min-h-screen bg-base-200">
+            <div className="navbar bg-primary text-white shadow-lg sticky top-0 z-50">
+                <div className="flex-1">
+                    <h1 className="text-xl md:text-2xl font-black ml-2 uppercase tracking-tighter">Buyurtma Tasdiqi</h1>
+                </div>
+                <div className="flex-none">
+                    <button onClick={handleLogout} className="btn btn-ghost">
+                        <FiLogOut className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
 
-                        <div className={`badge badge-lg ${getStatusColor(order.status)} mb-6`}>
+            <div className="container mx-auto px-4 py-8 max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="card bg-base-100 shadow-2xl rounded-[2.5rem] overflow-hidden">
+                    <div className="card-body text-center p-8 md:p-12">
+                        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <FiCheck size={40} />
+                        </div>
+
+                        <h1 className="text-3xl font-black text-slate-800 mb-2 uppercase tracking-tight">Qabul Qilindi!</h1>
+                        <div className="badge bg-primary border-0 text-white font-black px-4 py-3 mb-4 rounded-xl">BUYURTMA #{order.dailyNumber}</div>
+
+                        <div className={`badge badge-lg ${getStatusColor(order.status)} border-0 text-[10px] font-black uppercase tracking-widest px-4 py-3 mb-8 rounded-lg`}>
                             {getStatusText(order.status)}
                         </div>
 
-                        {/* QR Code */}
-                        <div className="bg-white p-8 rounded-xl inline-block mx-auto mb-6">
-                            <QRCodeSVG value={qrDataURL} size={256} />
+                        {/* QR Code Section */}
+                        <div className="bg-slate-50 p-6 md:p-10 rounded-[2rem] border-2 border-dashed border-slate-200 inline-block mx-auto mb-8">
+                            <div className="bg-white p-4 rounded-2xl shadow-sm">
+                                <QRCodeSVG value={qrDataURL} size={200} />
+                            </div>
+                            <p className="mt-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Kassaga ko'rsating</p>
                         </div>
 
-                        <p className="text-lg mb-6">
-                            Bu QR kodni hodimga ko'rsating yoki buyurtmangiz tayyor bo'lganda oling
-                        </p>
+                        {/* Status Message */}
+                        <div className="mb-8 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                            <p className="text-blue-700 font-bold italic text-sm">
+                                {order.status === 'pending' && "To'lovni amalga oshirish uchun kassaga boring"}
+                                {order.status === 'preparing' && "Oshpazlarimiz siz uchun mazali hot-dog tayyorlashmoqda"}
+                                {order.status === 'ready' && "Buyurtmangiz tayyor! Uni olib ketishingiz mumkin"}
+                            </p>
+                        </div>
+
+                        {/* Feedback Button */}
+                        {(order.status === 'ready' || order.status === 'completed') && !feedbackSubmitted && (
+                            <button
+                                onClick={() => setShowFeedbackModal(true)}
+                                className="btn btn-accent w-full rounded-2xl gap-2 font-black mb-6 animate-bounce"
+                            >
+                                <FiMessageSquare /> FIKR QOLDIRISH
+                            </button>
+                        )}
 
                         {/* Order Details */}
                         <div className="text-left bg-base-200 p-6 rounded-lg mb-6">
@@ -697,17 +765,63 @@ export function OrderConfirmation() {
                             </div>
                         </div>
 
-                        <div className="flex gap-4">
-                            <button onClick={() => navigate('/menu')} className="btn btn-primary flex-1">
-                                Yana buyurtma berish
+                        <div className="flex flex-col sm:flex-row gap-4 mt-10">
+                            <button onClick={() => navigate('/menu')} className="btn btn-primary lg:btn-lg flex-1 rounded-2xl font-black shadow-lg">
+                                YANA XORANDALIK
                             </button>
-                            <button onClick={() => navigate('/')} className="btn btn-ghost flex-1">
-                                Bosh sahifa
+                            <button onClick={() => navigate('/')} className="btn btn-ghost lg:btn-lg flex-1 rounded-2xl font-bold opacity-60">
+                                ASOSIY SAHIFA
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Feedback Modal */}
+            {showFeedbackModal && (
+                <div className="modal modal-open bg-slate-900/40 backdrop-blur-md">
+                    <div className="modal-box rounded-[2.5rem] p-10 max-w-md border border-white/10 shadow-3xl">
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-amber-100 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 rotate-6">
+                                <FiMessageSquare size={32} />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Fikringiz biz uchun muhim</h3>
+                            <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">Xizmat sifatini oshirishga yordam bering</p>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="flex justify-center gap-2">
+                                {[1, 2, 3, 4, 5].map(star => (
+                                    <button
+                                        key={star}
+                                        onClick={() => setRating(star)}
+                                        className={`p-2 transition-all hover:scale-125 ${rating >= star ? 'text-amber-400' : 'text-slate-200'}`}
+                                    >
+                                        <FiStar size={36} fill={rating >= star ? "currentColor" : "none"} />
+                                    </button>
+                                ))}
+                            </div>
+
+                            <textarea
+                                className="textarea textarea-bordered w-full h-32 rounded-2xl resize-none font-medium focus:border-primary border-slate-200 bg-slate-50"
+                                placeholder="Taassurotlaringizni yozing..."
+                                value={comment}
+                                onChange={e => setComment(e.target.value)}
+                            ></textarea>
+
+                            <div className="flex gap-3">
+                                <button onClick={() => setShowFeedbackModal(false)} className="btn btn-ghost flex-1 rounded-2xl">YOPISH</button>
+                                <button
+                                    onClick={handleFeedback}
+                                    className="btn btn-primary flex-2 rounded-2xl font-black shadow-lg shadow-primary/20"
+                                >
+                                    YUBORISH
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

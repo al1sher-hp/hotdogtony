@@ -20,7 +20,6 @@ export default function BossDashboard() {
     // Data for tabs
     const [employees, setEmployees] = useState([]);
     const [menuItems, setMenuItems] = useState([]);
-    const [ingredients, setIngredients] = useState([]);
     const [feedback, setFeedback] = useState([]);
 
     // Modal
@@ -40,9 +39,6 @@ export default function BossDashboard() {
             } else if (activeTab === 'employees') {
                 const res = await api.get('/users?role=employee');
                 setEmployees(res.data.users);
-            } else if (activeTab === 'ingredients') {
-                const res = await api.get('/ingredients');
-                setIngredients(res.data.ingredients);
             } else if (activeTab === 'feedback') {
                 const res = await api.get('/feedback');
                 setFeedback(res.data.feedbacks);
@@ -131,7 +127,6 @@ export default function BossDashboard() {
                         { id: 'stats', label: 'Statistika', icon: <FiTrendingUp /> },
                         { id: 'menu', label: 'Menu', icon: <FiShoppingBag /> },
                         { id: 'employees', label: 'Xodimlar', icon: <FiUsers /> },
-                        { id: 'ingredients', label: 'Zaxira', icon: <FiBox /> },
                         { id: 'feedback', label: 'Feedback', icon: <FiMessageSquare /> },
                     ].map(tab => (
                         <button
@@ -248,24 +243,7 @@ export default function BossDashboard() {
                             </div>
                         )}
 
-                        {activeTab === 'ingredients' && (
-                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                                <h3 className="font-bold text-2xl mb-8">Zaxira Holati</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {ingredients.map(ing => (
-                                        <div key={ing._id} className="p-4 bg-gray-50 rounded-2xl flex justify-between items-center">
-                                            <div>
-                                                <p className="font-bold">{ing.name}</p>
-                                                <p className="text-xs text-gray-500">{ing.currentStock} {ing.unit}</p>
-                                            </div>
-                                            <span className={`badge ${ing.currentStock <= ing.minStock ? 'badge-error' : 'badge-success'}`}>
-                                                {ing.currentStock <= ing.minStock ? 'Kam' : 'OK'}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+
 
                         {activeTab === 'feedback' && (
                             <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
