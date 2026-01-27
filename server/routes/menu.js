@@ -20,7 +20,6 @@ router.get('/', async (req, res) => {
         }
 
         const menuItems = await MenuItem.find(query)
-            .populate('ingredients')
             .sort({ category: 1, name: 1 });
 
         res.json({ menuItems });
@@ -33,8 +32,7 @@ router.get('/', async (req, res) => {
 // Get single menu item (public)
 router.get('/:id', async (req, res) => {
     try {
-        const menuItem = await MenuItem.findById(req.params.id)
-            .populate('ingredients');
+        const menuItem = await MenuItem.findById(req.params.id);
 
         if (!menuItem) {
             return res.status(404).json({ error: 'Menu item not found' });
@@ -71,7 +69,7 @@ router.post('/upload-image', auth, roleCheck(['boss', 'super-admin']), async (re
 // Create menu item (boss)
 router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
     try {
-        const { name, description, price, category, image, ingredients } = req.body;
+        const { name, description, price, category, image } = req.body;
 
         if (!name || !description || !price || !category || !image) {
             return res.status(400).json({
@@ -84,12 +82,10 @@ router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
             description,
             price,
             category,
-            image,
-            ingredients: ingredients || []
+            image
         });
 
         await menuItem.save();
-        await menuItem.populate('ingredients');
 
         res.status(201).json({ menuItem });
     } catch (error) {
@@ -102,7 +98,7 @@ router.post('/', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
 router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) => {
     try {
         const updates = req.body;
-        const allowedUpdates = ['name', 'description', 'price', 'category', 'image', 'ingredients', 'available'];
+        const allowedUpdates = ['name', 'description', 'price', 'category', 'image', 'available'];
         const requestedUpdates = Object.keys(updates);
 
         // Filter updates
@@ -117,7 +113,7 @@ router.patch('/:id', auth, roleCheck(['boss', 'super-admin']), async (req, res) 
             req.params.id,
             filteredUpdates,
             { new: true, runValidators: true }
-        ).populate('ingredients');
+        );
 
         if (!menuItem) {
             return res.status(404).json({ error: 'Menu item not found' });
