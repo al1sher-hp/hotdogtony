@@ -9,7 +9,7 @@ import api from '../utils/api';
 import socket from '../utils/socket';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon, FiArrowRight, FiUserPlus, FiLogIn } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon, FiArrowRight, FiUserPlus, FiLogIn, FiClock } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 
 // ==================================================================
