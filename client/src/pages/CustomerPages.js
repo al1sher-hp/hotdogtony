@@ -9,7 +9,7 @@ import api from '../utils/api';
 import socket from '../utils/socket';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiLogOut, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 
 // ==================================================================
@@ -129,7 +129,7 @@ export function Menu({ theme, toggleTheme }) {
     const [cart, setCart] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
 
     const categories = [
         { value: 'all', label: 'BARCHASI' },

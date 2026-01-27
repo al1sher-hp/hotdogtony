@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../utils/api';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { showToast } from '../components/shared/Toast';
-import { FiClock, FiLogOut, FiSun, FiMoon, FiChevronLeft, FiBox } from 'react-icons/fi';
+import { FiClock, FiLogOut, FiSun, FiMoon, FiChevronLeft } from 'react-icons/fi';
 
 export default function CustomerProfile({ theme, toggleTheme }) {
     const [orders, setOrders] = useState([]);
