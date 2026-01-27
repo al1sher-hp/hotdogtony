@@ -9,7 +9,7 @@ import api from '../utils/api';
 import socket from '../utils/socket';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon, FiArrowRight, FiUserPlus, FiLogIn, FiClock } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon, FiArrowRight, FiUserPlus, FiLogIn, FiClock, FiLogOut } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 
 // ==================================================================
@@ -227,7 +227,7 @@ export function Menu({ theme, toggleTheme }) {
                                 <FiUser className="w-5 h-5 text-base-content" />
                             </button>
                             <button onClick={handleLogout} className="btn btn-ghost btn-circle text-error bg-error/5 hover:bg-error/10">
-                                <FiTrash2 className="w-5 h-5" />
+                                <FiLogOut className="w-5 h-5" />
                             </button>
                         </>
                     )}
@@ -356,7 +356,7 @@ export function Cart({ theme, toggleTheme }) {
                         {theme === 'dark' ? <FiSun className="text-yellow-400" /> : <FiMoon className="text-indigo-600" />}
                     </button>
                     <button onClick={handleLogout} className="btn btn-ghost btn-circle btn-sm text-error bg-error/5 hover:bg-error/10">
-                        <FiTrash2 className="w-4 h-4" />
+                        <FiLogOut className="w-4 h-4" />
                     </button>
                 </div>
             </nav>
