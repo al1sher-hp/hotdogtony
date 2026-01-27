@@ -192,6 +192,7 @@ export function Menu({ theme, toggleTheme }) {
 
     const handleLogout = () => {
         logout();
+        localStorage.removeItem('guestName');
         navigate('/');
         showToast('Tizimdan chiqdingiz', 'info');
     };
@@ -294,11 +295,11 @@ export function Cart({ theme, toggleTheme }) {
         const savedCart = localStorage.getItem('cart');
         if (savedCart) setCart(JSON.parse(savedCart));
 
-        const guestPref = localStorage.getItem('guestName');
-        if (guestPref) {
-            setCustomerName(guestPref);
-        } else if (user && user.role === 'customer') {
+        if (user && user.role === 'customer') {
             setCustomerName(user.name);
+        } else {
+            const guestPref = localStorage.getItem('guestName');
+            if (guestPref) setCustomerName(guestPref);
         }
     }, [user]);
 
@@ -339,6 +340,7 @@ export function Cart({ theme, toggleTheme }) {
 
     const handleLogout = () => {
         logout();
+        localStorage.removeItem('guestName');
         navigate('/');
         showToast('Tizimdan chiqdingiz', 'info');
     };
