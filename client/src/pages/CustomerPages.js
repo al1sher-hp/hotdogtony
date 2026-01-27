@@ -485,7 +485,7 @@ export function OrderConfirmation({ theme, toggleTheme }) {
             confirmed: { text: 'Tasdiqlandi', color: 'text-info', bg: 'bg-info/10', icon: <FiCheck /> },
             preparing: { text: 'Tayyorlanmoqda', color: 'text-primary', bg: 'bg-primary/10', icon: <div className="loading loading-spinner loading-xs"></div> },
             ready: { text: 'Tayyor!', color: 'text-success', bg: 'bg-success/20', icon: <FiCheck size={18} /> },
-            completed: { text: 'Shunqoringiz topdi!', color: 'text-neutral', bg: 'bg-neutral/10', icon: <FiCheck /> }
+            completed: { text: 'Muvaffaqiyatli topshirildi!', color: 'text-neutral', bg: 'bg-neutral/10', icon: <FiCheck /> }
         };
         return info[status] || { text: status, color: 'text-gray-500', bg: 'bg-gray-100', icon: null };
     };
