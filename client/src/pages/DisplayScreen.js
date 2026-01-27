@@ -158,7 +158,7 @@ export default function DisplayScreen() {
             </footer>
 
             <audio ref={audioRef} preload="auto">
-                <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg" />
+                <source src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3" type="audio/mpeg" />
             </audio>
 
             <style>{`
