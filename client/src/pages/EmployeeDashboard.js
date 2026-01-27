@@ -134,8 +134,8 @@ export default function EmployeeDashboard() {
     if (loading) return <LoadingSpinner />;
 
     return (
-        <div className="min-h-screen bg-[#f8fafc]">
-            <nav className="navbar bg-slate-900 text-white shadow-2xl px-6 sticky top-0 z-50">
+        <div className="min-h-screen bg-base-200 text-base-content transition-colors duration-300">
+            <nav className="navbar bg-base-100/80 backdrop-blur-xl border-b border-base-content/5 px-6 sticky top-0 z-50">
                 <div className="flex-1">
                     <h1 className="text-xl font-black flex items-center gap-3 tracking-tighter">
                         <span className="bg-red-600 p-2 rounded-xl"><FiMaximize /></span>
@@ -167,7 +167,7 @@ export default function EmployeeDashboard() {
                     {/* Preparing Section */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between px-2">
-                            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3 uppercase tracking-tighter">
+                            <h2 className="text-2xl font-black text-base-content flex items-center gap-3 uppercase tracking-tighter">
                                 <span className="text-blue-600"><FiPlay /></span>
                                 Tayyorlanmoqda
                             </h2>
@@ -193,7 +193,7 @@ export default function EmployeeDashboard() {
                     {/* Ready Section */}
                     <div className="space-y-6">
                         <div className="flex items-center justify-between px-2">
-                            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-3 uppercase tracking-tighter">
+                            <h2 className="text-2xl font-black text-base-content flex items-center gap-3 uppercase tracking-tighter">
                                 <span className="text-emerald-600"><FiCheckCircle /></span>
                                 Tayyor
                             </h2>
@@ -222,13 +222,13 @@ export default function EmployeeDashboard() {
 }
 
 const EmptyState = ({ message }) => (
-    <div className="p-12 text-center bg-white/40 rounded-[2rem] border-2 border-dashed border-slate-200">
-        <p className="text-slate-400 font-bold italic">{message}</p>
+    <div className="p-12 text-center bg-base-100/40 rounded-[2rem] border-2 border-dashed border-base-content/10">
+        <p className="text-base-content/40 font-bold italic">{message}</p>
     </div>
 );
 
 const OrderCard = ({ order, type, onAction }) => (
-    <div className={`card bg-white shadow-sm hover:shadow-xl transition-all duration-300 border-l-[10px] ${type === 'pending' ? 'border-amber-400' :
+    <div className={`card bg-base-100 shadow-sm hover:shadow-xl transition-all duration-300 border-l-[10px] ${type === 'pending' ? 'border-amber-400' :
         type === 'preparing' ? 'border-indigo-500' : 'border-emerald-500'
         } rounded-3xl overflow-hidden p-6 animate-in fade-in slide-in-from-bottom-2`}>
         <div className="flex justify-between items-start mb-5">
@@ -236,19 +236,19 @@ const OrderCard = ({ order, type, onAction }) => (
                 <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg ${type === 'pending' ? 'bg-amber-100 text-amber-700' :
                     type === 'preparing' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'
                     }`}>Buyurtma #{order.dailyNumber}</span>
-                <h3 className="text-xl font-black text-slate-800 mt-1 uppercase tracking-tighter">{order.customerName}</h3>
+                <h3 className="text-xl font-black text-base-content mt-1 uppercase tracking-tighter">{order.customerName}</h3>
             </div>
             <div className="text-right">
-                <span className="text-[10px] text-slate-400 font-black uppercase block">Kelgan vaqti:</span>
-                <span className="text-xs text-slate-600 font-bold">{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <span className="text-[10px] text-base-content/40 font-black uppercase block">Kelgan vaqti:</span>
+                <span className="text-xs text-base-content/70 font-bold">{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
         </div>
 
         <div className="space-y-2 mb-8">
             {order.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-center bg-slate-50 p-3 rounded-2xl group border border-slate-100 hover:bg-white hover:border-slate-200 transition-all">
-                    <span className="font-bold text-slate-700">{item.menuItem.name}</span>
-                    <span className="badge bg-slate-900 border-0 h-6 w-6 p-0 text-[10px] font-black text-white rounded-lg">x{item.quantity}</span>
+                <div key={idx} className="flex justify-between items-center bg-base-200 p-3 rounded-2xl group border border-base-content/5 hover:bg-base-100 hover:border-base-content/10 transition-all">
+                    <span className="font-bold text-base-content">{item.menuItem.name}</span>
+                    <span className="badge bg-base-content text-base-100 border-0 h-6 w-6 p-0 text-[10px] font-black rounded-lg">x{item.quantity}</span>
                 </div>
             ))}
         </div>

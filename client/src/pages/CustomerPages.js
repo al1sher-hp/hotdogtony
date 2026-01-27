@@ -83,7 +83,7 @@ export function CustomerLanding({ theme, toggleTheme }) {
                         <span className="text-6xl drop-shadow-xl">🌭</span>
                     </div>
                     <h2 className="text-4xl font-black text-base-content mb-2 tracking-tighter uppercase">Hotdog Tony</h2>
-                    <p className="text-base-content/50 font-bold tracking-widest text-[10px] uppercase">Gourmet Street Food Experience</p>
+                    <p className="text-base-content/70 font-bold tracking-widest text-[10px] uppercase">Gourmet Street Food Experience</p>
                 </div>
 
                 <div className="space-y-6">
@@ -100,7 +100,7 @@ export function CustomerLanding({ theme, toggleTheme }) {
                                 Buyurtma Boshlash <FiArrowRight />
                             </button>
 
-                            <div className="divider text-[10px] font-black uppercase opacity-20 tracking-widest">Yoki</div>
+                            <div className="divider text-[10px] font-black uppercase opacity-40 tracking-widest">Yoki</div>
 
                             <div className="grid grid-cols-2 gap-3">
                                 <button onClick={() => setAuthMode('login')} className="btn btn-outline btn-sm rounded-xl font-black uppercase text-[10px] tracking-widest gap-2">
@@ -240,7 +240,7 @@ export function Menu({ theme, toggleTheme }) {
                         <button
                             key={cat.value}
                             onClick={() => setSelectedCategory(cat.value)}
-                            className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${selectedCategory === cat.value ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-base-300/50 text-base-content/40 hover:bg-base-300 hover:text-base-content'}`}
+                            className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${selectedCategory === cat.value ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'bg-base-300/50 text-base-content/60 hover:bg-base-300 hover:text-base-content'}`}
                         >
                             {cat.label}
                         </button>
@@ -258,11 +258,11 @@ export function Menu({ theme, toggleTheme }) {
                             </figure>
                             <div className="card-body p-8">
                                 <h2 className="card-title font-black uppercase text-lg tracking-tight text-base-content leading-none mb-1">{item.name}</h2>
-                                <p className="text-[11px] font-medium opacity-40 line-clamp-2 h-8 leading-relaxed italic mb-4">{item.description}</p>
+                                <p className="text-[11px] font-medium opacity-60 line-clamp-2 h-8 leading-relaxed italic mb-4">{item.description}</p>
                                 <div className="flex justify-between items-center mt-auto bg-base-200/50 p-3 rounded-2xl border border-base-content/5">
                                     <div className="flex flex-col">
                                         <span className="text-xl font-black text-primary tracking-tighter">{(item.price || 0).toLocaleString()}</span>
-                                        <span className="text-[9px] font-black opacity-30 uppercase tracking-widest leading-none">so'm</span>
+                                        <span className="text-[9px] font-black opacity-50 uppercase tracking-widest leading-none">so'm</span>
                                     </div>
                                     <button onClick={() => addToCart(item)} className="btn btn-primary btn-sm rounded-xl px-5 font-black text-white shadow-lg shadow-primary/20 hover:scale-110 transition-transform">
                                         <FiPlus size={18} />
@@ -367,7 +367,7 @@ export function Cart({ theme, toggleTheme }) {
                         {cart.length === 0 ? (
                             <div className="card bg-base-100 p-20 text-center rounded-[3rem] border border-dashed border-base-content/20">
                                 <span className="text-8xl mb-6 grayscale opacity-10">🛒</span>
-                                <p className="font-black opacity-20 uppercase tracking-widest text-sm">Savatchangiz bo'sh...</p>
+                                <p className="font-black opacity-40 uppercase tracking-widest text-sm">Savatchangiz bo'sh...</p>
                                 <button onClick={() => navigate('/menu')} className="btn btn-primary btn-sm mt-8 rounded-xl px-8 shadow-xl shadow-primary/20 text-white">XARIDLARNI BOSHLASH</button>
                             </div>
                         ) : (
@@ -401,7 +401,7 @@ export function Cart({ theme, toggleTheme }) {
                         <div className="space-y-8 relative z-10">
                             <div className="flex justify-between items-end">
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black opacity-30 uppercase tracking-widest leading-none">Jami Summa</span>
+                                    <span className="text-[10px] font-black opacity-50 uppercase tracking-widest leading-none">Jami Summa</span>
                                     <span className="text-3xl font-black text-primary tracking-tighter mt-1">{totalPrice.toLocaleString()}</span>
                                 </div>
                                 <span className="text-xs font-black opacity-40 uppercase mb-1">so'm</span>
@@ -410,7 +410,7 @@ export function Cart({ theme, toggleTheme }) {
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div className="form-control">
                                     <label className="label">
-                                        <span className="label-text text-[10px] font-black uppercase opacity-40 tracking-widest ml-1">Qabul qiluvchi ismi</span>
+                                        <span className="label-text text-[10px] font-black uppercase opacity-60 tracking-widest ml-1">Qabul qiluvchi ismi</span>
                                     </label>
                                     <input
                                         type="text"
@@ -425,7 +425,7 @@ export function Cart({ theme, toggleTheme }) {
                                 <button type="submit" disabled={loading || cart.length === 0} className="btn btn-primary w-full h-16 rounded-2xl font-black text-lg text-white shadow-2xl shadow-primary/30 mt-4 uppercase tracking-tight gap-2 group">
                                     {loading ? <span className="loading loading-spinner"></span> : <>Tasdiqlash <FiCheck size={20} className="group-hover:scale-125 transition-transform" /></>}
                                 </button>
-                                <p className="text-[10px] text-center opacity-30 font-bold uppercase tracking-widest leading-relaxed">Tayyorlanish vaqti: 10-15 daqiqa</p>
+                                <p className="text-[10px] text-center opacity-50 font-bold uppercase tracking-widest leading-relaxed">Tayyorlanish vaqti: 10-15 daqiqa</p>
                             </form>
                         </div>
                     </div>
@@ -517,7 +517,7 @@ export function OrderConfirmation({ theme, toggleTheme }) {
                         </div>
 
                         <h1 className="text-4xl font-black uppercase tracking-tighter text-base-content mb-3 leading-none">Rahmat!</h1>
-                        <p className="text-xs font-bold opacity-30 uppercase tracking-[0.3em] mb-8">Buyurtmangiz muvaffaqiyatli qabul qilindi</p>
+                        <p className="text-xs font-bold opacity-50 uppercase tracking-[0.3em] mb-8">Buyurtmangiz muvaffaqiyatli qabul qilindi</p>
 
                         <div className="badge badge-primary font-black px-6 py-4 mb-10 rounded-2xl text-white shadow-xl shadow-primary/20 scale-110">
                             # {order.dailyNumber}
@@ -525,7 +525,7 @@ export function OrderConfirmation({ theme, toggleTheme }) {
 
                         <div className="bg-base-200/50 p-10 rounded-[3rem] inline-block mx-auto mb-10 border border-base-content/5 shadow-inner group transition-all duration-500 hover:bg-white hover:scale-105">
                             <div className="p-4 bg-white rounded-[2rem] shadow-2xl"><QRCodeSVG value={qrDataURL} size={200} /></div>
-                            <p className="mt-6 text-[11px] font-black text-base-content opacity-40 uppercase tracking-[0.2em]">Kassaga ko'rsating</p>
+                            <p className="mt-6 text-[11px] font-black text-base-content opacity-50 uppercase tracking-[0.2em]">Kassaga ko'rsating</p>
                         </div>
 
                         <div className={`flex items-center justify-center gap-3 px-8 py-5 rounded-3xl ${statusInfo.bg} ${statusInfo.color} font-black uppercase text-sm tracking-widest mb-10 border border-current/10 shadow-lg shadow-current/5`}>
@@ -539,7 +539,7 @@ export function OrderConfirmation({ theme, toggleTheme }) {
                         )}
 
                         <div className="text-left bg-base-200/50 p-10 rounded-[2.5rem] border border-base-content/5 mb-12">
-                            <h3 className="font-black uppercase text-[10px] tracking-widest opacity-30 mb-6 flex items-center gap-2">
+                            <h3 className="font-black uppercase text-[10px] tracking-widest opacity-50 mb-6 flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-primary rounded-full"></div> Buyurtma tafsilotlari
                             </h3>
                             <div className="space-y-4 mb-6">
@@ -551,7 +551,7 @@ export function OrderConfirmation({ theme, toggleTheme }) {
                                 ))}
                             </div>
                             <div className="flex justify-between items-end pt-2">
-                                <span className="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">Yakuniy summa:</span>
+                                <span className="text-[10px] font-black opacity-50 uppercase tracking-widest mb-1">Yakuniy summa:</span>
                                 <span className="text-3xl font-black text-primary tracking-tighter">{order.totalPrice.toLocaleString()} <small className="text-xs uppercase opacity-40">so'm</small></span>
                             </div>
                         </div>
@@ -573,7 +573,7 @@ export function OrderConfirmation({ theme, toggleTheme }) {
                                 <FiStar size={32} fill="currentColor" />
                             </div>
                             <h3 className="text-2xl font-black text-base-content uppercase tracking-tight leading-none mb-2">Sizga yoqdimi?</h3>
-                            <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">Fikringiz biz uchun juda muhim</p>
+                            <p className="text-[10px] font-bold opacity-50 uppercase tracking-widest">Fikringiz biz uchun juda muhim</p>
                         </div>
 
                         <div className="flex justify-center gap-2 mb-10">
@@ -633,7 +633,7 @@ export function VerifyMagicLink() {
             <div className="card bg-base-100 shadow-4xl p-16 text-center rounded-[3.5rem] border border-base-content/5 max-w-sm">
                 <div className="w-20 h-20 bg-error/10 text-error rounded-[2rem] flex items-center justify-center mx-auto mb-8"><FiCheck size={40} className="rotate-45" /></div>
                 <h2 className="text-3xl font-black text-base-content mb-3 uppercase tracking-tighter">XATOLIK!</h2>
-                <p className="text-xs font-bold opacity-30 uppercase tracking-widest mb-10 leading-relaxed">Xavfsizlik linki yaroqsiz yoki muddati tugagan</p>
+                <p className="text-xs font-bold opacity-50 uppercase tracking-widest mb-10 leading-relaxed">Xavfsizlik linki yaroqsiz yoki muddati tugagan</p>
                 <button onClick={() => navigate('/')} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white">BOSHLANG'ICH SAHIFA</button>
             </div>
         </div>

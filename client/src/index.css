@@ -9,7 +9,7 @@
   }
 
   body {
-    @apply bg-base-200 text-neutral;
+    @apply bg-base-200 text-base-content transition-colors duration-300;
   }
 }
 

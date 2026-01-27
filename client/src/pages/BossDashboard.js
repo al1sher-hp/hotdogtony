@@ -93,11 +93,11 @@ export default function BossDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc]">
+        <div className="min-h-screen bg-base-200 text-base-content font-sans transition-colors duration-300">
             {/* Sidebar-style Nav */}
-            <div className="navbar bg-white border-b border-gray-100 px-6 sticky top-0 z-50">
+            <div className="navbar bg-base-100/80 backdrop-blur-xl border-b border-base-content/5 px-6 sticky top-0 z-50">
                 <div className="flex-1">
-                    <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <h1 className="text-xl font-bold text-base-content flex items-center gap-2">
                         <span className="p-2 bg-indigo-600 rounded-lg text-white">🌭</span>
                         Boshliq Paneli
                     </h1>
@@ -114,7 +114,7 @@ export default function BossDashboard() {
                             <option value="monthly">Oy</option>
                         </select>
                     )}
-                    <button onClick={logout} className="btn btn-ghost btn-sm text-gray-500 rounded-lg">
+                    <button onClick={logout} className="btn btn-ghost btn-sm text-base-content/60 rounded-lg">
                         <FiLogOut /> Chiqish
                     </button>
                 </div>
@@ -133,8 +133,8 @@ export default function BossDashboard() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all ${activeTab === tab.id
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100 translate-y-[-2px]'
-                                : 'bg-white text-gray-500 hover:bg-gray-50'
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 translate-y-[-2px]'
+                                : 'bg-base-100 text-base-content/60 hover:bg-base-300'
                                 }`}
                         >
                             {tab.icon} {tab.label}
@@ -156,30 +156,30 @@ export default function BossDashboard() {
                                         { label: 'O\'rtacha Chek', val: `${Math.round(stats?.stats?.averageOrderValue || 0).toLocaleString()} s.`, color: 'amber' },
                                         { label: 'Reyting', val: `⭐ ${stats?.stats?.averageRating || 0}`, color: 'rose' }
                                     ].map((s, i) => (
-                                        <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                                            <p className="text-gray-400 text-sm font-medium uppercase tracking-wider">{s.label}</p>
-                                            <p className="text-3xl font-bold text-gray-800 mt-1">{s.val}</p>
+                                        <div key={i} className="bg-base-100 p-6 rounded-2xl shadow-sm border border-base-content/5">
+                                            <p className="text-base-content/40 text-sm font-medium uppercase tracking-wider">{s.label}</p>
+                                            <p className="text-3xl font-bold text-base-content mt-1">{s.val}</p>
                                         </div>
                                     ))}
                                 </div>
 
                                 {/* Main Stats */}
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                    <div className="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                                    <div className="lg:col-span-2 bg-base-100 p-8 rounded-3xl shadow-sm border border-base-content/5">
                                         <div className="flex justify-between items-center mb-8">
-                                            <h3 className="font-bold text-xl text-gray-800">Sotuv Grafigi</h3>
+                                            <h3 className="font-bold text-xl text-base-content">Sotuv Grafigi</h3>
                                             <button onClick={exportToExcel} className="btn btn-sm btn-ghost text-indigo-600 gap-2">
                                                 <FiDownload /> Excel
                                             </button>
                                         </div>
                                         <Bar data={chartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
                                     </div>
-                                    <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-                                        <h3 className="font-bold text-xl text-gray-800 mb-6">Top Mahsulotlar</h3>
+                                    <div className="bg-base-100 p-8 rounded-3xl shadow-sm border border-base-content/5">
+                                        <h3 className="font-bold text-xl text-base-content mb-6">Top Mahsulotlar</h3>
                                         <div className="space-y-4">
                                             {stats?.popularItems?.map((item, i) => (
-                                                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-gray-50">
-                                                    <span className="font-medium text-gray-700">{item.name}</span>
+                                                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-base-200">
+                                                    <span className="font-medium text-base-content/80">{item.name}</span>
                                                     <span className="badge badge-indigo border-0 font-bold">{item.count} dona</span>
                                                 </div>
                                             ))}
@@ -190,7 +190,7 @@ export default function BossDashboard() {
                         )}
 
                         {activeTab === 'menu' && (
-                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                            <div className="bg-base-100 p-8 rounded-3xl shadow-sm border border-base-content/5">
                                 <div className="flex justify-between items-center mb-8">
                                     <h3 className="font-bold text-2xl">Menu Boshqaruvi</h3>
                                     <button onClick={() => { setModalType('menu'); setEditItem(null); setShowModal(true); }} className="btn btn-primary rounded-xl gap-2"><FiPlus /> Qo'shish</button>
@@ -216,7 +216,7 @@ export default function BossDashboard() {
                         )}
 
                         {activeTab === 'employees' && (
-                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                            <div className="bg-base-100 p-8 rounded-3xl shadow-sm border border-base-content/5">
                                 <div className="flex justify-between items-center mb-8">
                                     <h3 className="font-bold text-2xl">Xodimlar</h3>
                                     <button onClick={() => { setModalType('employee'); setEditItem(null); setShowModal(true); }} className="btn btn-primary rounded-xl gap-2"><FiPlus /> Qo'shish</button>
@@ -246,16 +246,16 @@ export default function BossDashboard() {
 
 
                         {activeTab === 'feedback' && (
-                            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                            <div className="bg-base-100 p-8 rounded-3xl shadow-sm border border-base-content/5">
                                 <h3 className="font-bold text-2xl mb-8">Mijoz Izohlari</h3>
                                 <div className="space-y-4">
                                     {feedback.map(f => (
-                                        <div key={f._id} className="p-4 bg-gray-50 rounded-2xl">
+                                        <div key={f._id} className="p-4 bg-base-200 rounded-2xl">
                                             <div className="flex justify-between mb-2">
                                                 <span className="font-bold text-indigo-600">⭐ {f.rating}/5</span>
-                                                <span className="text-xs text-gray-400">#{f.order?.dailyNumber}</span>
+                                                <span className="text-[10px] uppercase font-black opacity-30">#{f.order?.dailyNumber}</span>
                                             </div>
-                                            <p className="italic text-gray-600">"{f.comment}"</p>
+                                            <p className="italic text-base-content/70">"{f.comment}"</p>
                                         </div>
                                     ))}
                                 </div>
@@ -308,7 +308,7 @@ export default function BossDashboard() {
                                 </div>
                                 <div className="modal-action">
                                     <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost rounded-xl">Bekor qilish</button>
-                                    <button type="submit" className="btn btn-primary rounded-xl px-10 shadow-lg shadow-indigo-100">Saqlash</button>
+                                    <button type="submit" className="btn btn-primary rounded-xl px-10 shadow-lg shadow-indigo-500/20 text-white">Saqlash</button>
                                 </div>
                             </form>
                         ) : (

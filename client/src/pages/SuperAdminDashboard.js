@@ -149,7 +149,6 @@ export default function SuperAdminDashboard() {
     };
 
     const handleDelete = async (id, roleOrLabel) => {
-        // Prevents deleting super-admin accounts
         if (roleOrLabel === 'super-admin') {
             showToast('Asosiy Super-Adminni o\'chirib bo\'lmaydi!', 'error');
             return;
@@ -159,7 +158,6 @@ export default function SuperAdminDashboard() {
 
         try {
             let endpoint = '';
-            // Ensure endpoint starts with / for relative path to baseURL or uses full relative path
             switch (activeTab) {
                 case 'users': endpoint = `/users/${id}`; break;
                 case 'orders': endpoint = `/orders/${id}`; break;
@@ -170,8 +168,6 @@ export default function SuperAdminDashboard() {
 
             await api.delete(endpoint);
             showToast('Muvaffaqiyatli o\'chirildi', 'success');
-
-            // Immediately update the local state to wow the user
             setData(prev => prev.filter(item => item._id !== id));
         } catch (error) {
             console.error('Delete error:', error);
@@ -180,29 +176,29 @@ export default function SuperAdminDashboard() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
-            <nav className="navbar bg-slate-900/40 border-b border-white/5 px-6 sticky top-0 z-40 backdrop-blur-xl">
+        <div className="min-h-screen bg-base-300 text-base-content font-sans transition-colors duration-300">
+            <nav className="navbar bg-base-100/80 backdrop-blur-xl border-b border-base-content/5 px-6 sticky top-0 z-40 h-20">
                 <div className="flex-1">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-gradient-to-br from-red-500 to-red-700 rounded-xl shadow-lg border border-red-400/20">
                             <FiShield className="text-white text-lg" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-base font-black tracking-tight leading-none text-white uppercase">Super Admin</span>
+                            <span className="text-base font-black tracking-tight leading-none text-base-content uppercase">Super Admin</span>
                             <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-red-500 mt-1">Sistemani boshqarish</span>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <button onClick={logout} className="btn btn-ghost btn-sm bg-white/5 hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all gap-2 border-0">
+                    <button onClick={logout} className="btn btn-ghost btn-sm bg-base-content/5 hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all gap-2 border-0">
                         <FiLogOut /> <span className="hidden sm:inline">Chiqish</span>
                     </button>
                 </div>
             </nav>
 
-            <div className="container mx-auto px-4 py-8 max-w-7xl">
+            <div className="container mx-auto px-4 py-8 max-w-7xl animate-in fade-in duration-700">
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-10">
-                    <div className="inline-flex p-1 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm overflow-x-auto max-w-full">
+                    <div className="inline-flex p-1 bg-base-100/50 rounded-2xl border border-base-content/5 backdrop-blur-sm overflow-x-auto max-w-full">
                         {[
                             { id: 'users', label: 'Foydalanuvchilar', icon: <FiUsers /> },
                             { id: 'orders', label: 'Buyurtmalar', icon: <FiShoppingBag /> },
@@ -212,7 +208,7 @@ export default function SuperAdminDashboard() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-red-500 text-white shadow-xl shadow-red-500/20 scale-105' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-red-500 text-white shadow-xl shadow-red-500/20 scale-105' : 'text-base-content/60 hover:text-base-content hover:bg-base-100/50'}`}
                             >
                                 {tab.icon} {tab.label}
                             </button>
@@ -222,28 +218,28 @@ export default function SuperAdminDashboard() {
                     {(activeTab === 'users' || activeTab === 'menu') && (
                         <button
                             onClick={() => handleOpenModal()}
-                            className="btn btn-error btn-md rounded-2xl gap-2 font-black shadow-xl shadow-red-500/20 w-full lg:w-auto"
+                            className="btn btn-error btn-md rounded-2xl gap-2 font-black shadow-xl shadow-red-500/20 text-white w-full lg:w-auto"
                         >
                             <FiPlus className="text-lg" /> {activeTab === 'users' ? 'Xodim' : 'Mahsulot'} Qo'shish
                         </button>
                     )}
                 </div>
 
-                <div className="bg-slate-900/30 rounded-[2.5rem] border border-white/5 overflow-hidden backdrop-blur-2xl">
-                    <div className="p-8 border-b border-white/5 flex justify-between items-center bg-gradient-to-r from-white/5 to-transparent">
-                        <h2 className="text-2xl font-black capitalize text-white">{activeTab} Boshqaruvi</h2>
-                        <span className="px-4 py-2 bg-slate-900 rounded-full border border-white/5 font-mono text-[10px] text-slate-400 uppercase">Jami: {data.length}</span>
+                <div className="bg-base-100/30 rounded-[2.5rem] border border-base-content/5 overflow-hidden backdrop-blur-2xl shadow-xl">
+                    <div className="p-8 border-b border-base-content/5 flex justify-between items-center bg-gradient-to-r from-base-content/5 to-transparent">
+                        <h2 className="text-2xl font-black capitalize text-base-content">{activeTab} Boshqaruvi</h2>
+                        <span className="px-4 py-2 bg-base-300 rounded-full border border-base-content/10 font-mono text-[10px] text-base-content/60 uppercase">Jami: {data.length}</span>
                     </div>
 
                     {loading ? (
                         <div className="p-32 flex justify-center"><LoadingSpinner /></div>
                     ) : (data.length === 0 ? (
-                        <div className="p-32 text-center opacity-30 italic">Ma'lumotlar mavjud emas</div>
+                        <div className="p-32 text-center opacity-30 italic font-black uppercase tracking-widest">Ma'lumotlar mavjud emas</div>
                     ) : (
                         <div className="overflow-x-auto p-4">
                             <table className="table w-full border-separate border-spacing-y-3">
-                                <thead className="text-slate-500 text-[11px] font-black uppercase tracking-widest">
-                                    <tr className="border-0">
+                                <thead className="text-base-content/40 text-[11px] font-black uppercase tracking-widest border-0">
+                                    <tr>
                                         {activeTab === 'users' && <><th>Xodim</th><th>Email</th><th>Rol</th></>}
                                         {activeTab === 'orders' && <><th>ID</th><th>Mijoz</th><th>Summa</th><th>Holat</th></>}
                                         {activeTab === 'menu' && <><th>Rasm</th><th>Nomi</th><th>Narxi</th><th>Kategoriya</th></>}
@@ -253,35 +249,35 @@ export default function SuperAdminDashboard() {
                                 </thead>
                                 <tbody>
                                     {data.map((item) => (
-                                        <tr key={item._id} className="bg-white/5 hover:bg-white/10 transition-all rounded-3xl">
+                                        <tr key={item._id} className="bg-base-100/40 hover:bg-base-100/60 transition-all rounded-3xl border-0 group">
                                             {activeTab === 'users' && (
                                                 <>
-                                                    <td className="font-bold text-white uppercase rounded-l-3xl">{item.name}</td>
-                                                    <td className="text-slate-400">{item.email}</td>
+                                                    <td className="font-bold text-base-content uppercase rounded-l-3xl">{item.name}</td>
+                                                    <td className="text-base-content/60">{item.email}</td>
                                                     <td><div className="badge badge-sm rounded-lg font-black text-[9px] bg-red-500/20 text-red-500 border-0">{item.role.toUpperCase()}</div></td>
                                                 </>
                                             )}
                                             {activeTab === 'orders' && (
                                                 <>
                                                     <td className="font-black text-red-500 rounded-l-3xl">#{item.dailyNumber}</td>
-                                                    <td className="font-bold">{item.customerName}</td>
-                                                    <td className="font-black text-emerald-400">{item.totalPrice?.toLocaleString()} so'm</td>
-                                                    <td><div className="badge badge-outline badge-xs opacity-50 uppercase font-black">{item.status}</div></td>
+                                                    <td className="font-bold text-base-content">{item.customerName}</td>
+                                                    <td className="font-black text-emerald-500">{item.totalPrice?.toLocaleString()} so'm</td>
+                                                    <td><div className="badge badge-outline badge-xs opacity-50 uppercase font-black text-base-content">{item.status}</div></td>
                                                 </>
                                             )}
                                             {activeTab === 'menu' && (
                                                 <>
-                                                    <td className="rounded-l-3xl"><img src={item.image} alt="" className="w-10 h-10 rounded-xl object-cover" /></td>
-                                                    <td className="font-bold">{item.name}</td>
-                                                    <td className="text-emerald-400 font-bold">{item.price?.toLocaleString()} so'm</td>
-                                                    <td><span className="opacity-40 text-[10px] font-bold uppercase">{item.category}</span></td>
+                                                    <td className="rounded-l-3xl"><img src={item.image} alt="" className="w-10 h-10 rounded-xl object-cover shadow-lg" /></td>
+                                                    <td className="font-bold text-base-content">{item.name}</td>
+                                                    <td className="text-emerald-500 font-bold">{item.price?.toLocaleString()} so'm</td>
+                                                    <td><span className="opacity-50 text-[10px] font-bold uppercase text-base-content">{item.category}</span></td>
                                                 </>
                                             )}
                                             {activeTab === 'feedback' && (
                                                 <>
                                                     <td className="rounded-l-3xl text-amber-500 font-black">⭐ {item.rating}</td>
-                                                    <td className="max-w-xs truncate italic text-slate-400">{item.comment}</td>
-                                                    <td className="opacity-40 font-black tracking-tighter text-[10px]">BUYURTMA #{item.order?.dailyNumber || '???'}</td>
+                                                    <td className="max-w-xs truncate italic text-base-content/60">{item.comment}</td>
+                                                    <td className="opacity-40 font-black tracking-tighter text-[10px] text-base-content">BUYURTMA #{item.order?.dailyNumber || '???'}</td>
                                                 </>
                                             )}
                                             <td className="text-right rounded-r-3xl px-6">
@@ -302,54 +298,54 @@ export default function SuperAdminDashboard() {
             </div>
 
             {showModal && (
-                <div className="modal modal-open bg-slate-950/90 backdrop-blur-2xl">
-                    <div className="modal-box bg-slate-900 border border-white/10 rounded-[3rem] p-10 max-w-md shadow-4xl overflow-visible">
+                <div className="modal modal-open bg-base-300/90 backdrop-blur-2xl">
+                    <div className="modal-box bg-base-100 border border-base-content/10 rounded-[3rem] p-10 max-w-md shadow-4xl overflow-visible">
                         <div className="text-center mb-8">
-                            <h3 className="text-3xl font-black text-white uppercase">{editItem ? 'Tahrirlash' : 'Yangi Qo\'shish'}</h3>
+                            <h3 className="text-3xl font-black text-base-content uppercase">{editItem ? 'Tahrirlash' : 'Yangi Qo\'shish'}</h3>
                         </div>
 
                         {activeTab === 'users' ? (
                             <form onSubmit={handleUserSubmit} className="space-y-4">
-                                <input type="text" placeholder="Ism-sharif" className="input input-bordered w-full bg-white/5 rounded-2xl" value={userFormData.name} onChange={e => setUserFormData({ ...userFormData, name: e.target.value })} required />
-                                <input type="email" placeholder="Email" className="input input-bordered w-full bg-white/5 rounded-2xl" value={userFormData.email} onChange={e => setUserFormData({ ...userFormData, email: e.target.value })} required />
-                                <input type="password" placeholder={`Parol ${editItem ? '(ixtiyoriy)' : ''}`} className="input input-bordered w-full bg-white/5 rounded-2xl" value={userFormData.password} onChange={e => setUserFormData({ ...userFormData, password: e.target.value })} required={!editItem} />
+                                <input type="text" placeholder="Ism-sharif" className="input input-bordered w-full bg-base-200 border-0 rounded-2xl font-bold" value={userFormData.name} onChange={e => setUserFormData({ ...userFormData, name: e.target.value })} required />
+                                <input type="email" placeholder="Email" className="input input-bordered w-full bg-base-200 border-0 rounded-2xl font-bold" value={userFormData.email} onChange={e => setUserFormData({ ...userFormData, email: e.target.value })} required />
+                                <input type="password" placeholder={`Parol ${editItem ? '(ixtiyoriy)' : ''}`} className="input input-bordered w-full bg-base-200 border-0 rounded-2xl font-bold" value={userFormData.password} onChange={e => setUserFormData({ ...userFormData, password: e.target.value })} required={!editItem} />
                                 <select
-                                    className="select select-bordered w-full bg-slate-800 text-white rounded-2xl border-white/10"
+                                    className="select select-bordered w-full bg-base-200 border-0 rounded-2xl font-bold"
                                     value={userFormData.role}
                                     onChange={e => setUserFormData({ ...userFormData, role: e.target.value })}
                                 >
-                                    <option value="employee" className="bg-slate-900 text-white">Staff (Hodim)</option>
-                                    <option value="boss" className="bg-slate-900 text-white">Boss (Boshliq)</option>
-                                    <option value="super-admin" className="bg-slate-900 text-white">Admin (S.Admin)</option>
-                                    <option value="customer" className="bg-slate-900 text-white">Mijoz (Client)</option>
+                                    <option value="employee">Staff (Hodim)</option>
+                                    <option value="boss">Boss (Boshliq)</option>
+                                    <option value="super-admin">Admin (S.Admin)</option>
+                                    <option value="customer">Mijoz (Client)</option>
                                 </select>
                                 <div className="flex gap-4 mt-8">
-                                    <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost flex-1 rounded-2xl">BEKOR</button>
-                                    <button type="submit" disabled={submitting} className="btn btn-error flex-2 rounded-2xl font-black">{submitting ? '...' : 'SAQLASH'}</button>
+                                    <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost flex-1 rounded-2xl font-bold">BEKOR</button>
+                                    <button type="submit" disabled={submitting} className="btn btn-error flex-2 rounded-2xl font-black text-white">{submitting ? '...' : 'SAQLASH'}</button>
                                 </div>
                             </form>
                         ) : (
                             <form onSubmit={handleMenuSubmit} className="space-y-4">
-                                <input placeholder="Nomi" className="input input-bordered w-full bg-white/5 rounded-2xl" value={menuFormData.name} onChange={e => setMenuFormData({ ...menuFormData, name: e.target.value })} required />
-                                <textarea placeholder="Tavsif" className="textarea textarea-bordered w-full bg-white/5 rounded-2xl" value={menuFormData.description} onChange={e => setMenuFormData({ ...menuFormData, description: e.target.value })} required />
-                                <input type="number" placeholder="Narxi" className="input input-bordered w-full bg-white/5 rounded-2xl" value={menuFormData.price} onChange={e => setMenuFormData({ ...menuFormData, price: e.target.value })} required />
-                                <select className="select select-bordered w-full bg-white/5 rounded-2xl" value={menuFormData.category} onChange={e => setMenuFormData({ ...menuFormData, category: e.target.value })}>
+                                <input placeholder="Nomi" className="input input-bordered w-full bg-base-200 border-0 rounded-2xl font-bold" value={menuFormData.name} onChange={e => setMenuFormData({ ...menuFormData, name: e.target.value })} required />
+                                <textarea placeholder="Tavsif" className="textarea textarea-bordered w-full bg-base-200 border-0 rounded-2xl font-bold" value={menuFormData.description} onChange={e => setMenuFormData({ ...menuFormData, description: e.target.value })} required />
+                                <input type="number" placeholder="Narxi" className="input input-bordered w-full bg-base-200 border-0 rounded-2xl font-bold" value={menuFormData.price} onChange={e => setMenuFormData({ ...menuFormData, price: e.target.value })} required />
+                                <select className="select select-bordered w-full bg-base-200 border-0 rounded-2xl font-bold" value={menuFormData.category} onChange={e => setMenuFormData({ ...menuFormData, category: e.target.value })}>
                                     <option value="classic">Classic</option>
                                     <option value="premium">Premium</option>
                                     <option value="combo">Combo</option>
                                     <option value="drinks">Drinks</option>
                                     <option value="sides">Sides</option>
                                 </select>
-                                <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl">
-                                    {menuFormData.image && <img src={menuFormData.image} alt="" className="w-12 h-12 rounded-lg object-cover" />}
-                                    <label className="btn btn-ghost btn-sm gap-2">
+                                <div className="flex items-center gap-4 bg-base-200 p-4 rounded-2xl">
+                                    {menuFormData.image && <img src={menuFormData.image} alt="" className="w-12 h-12 rounded-lg object-cover shadow-md" />}
+                                    <label className="btn btn-ghost btn-sm gap-2 opacity-60">
                                         <FiUpload /> {uploading ? 'Yuklanmoqda...' : 'Rasm Tanlash'}
                                         <input type="file" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                                     </label>
                                 </div>
                                 <div className="flex gap-4 mt-8">
-                                    <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost flex-1 rounded-2xl">BEKOR</button>
-                                    <button type="submit" disabled={submitting || uploading} className="btn btn-error flex-2 rounded-2xl font-black">{submitting ? '...' : 'SAQLASH'}</button>
+                                    <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost flex-1 rounded-2xl font-bold">BEKOR</button>
+                                    <button type="submit" disabled={submitting || uploading} className="btn btn-error flex-2 rounded-2xl font-black text-white">{submitting ? '...' : 'SAQLASH'}</button>
                                 </div>
                             </form>
                         )}

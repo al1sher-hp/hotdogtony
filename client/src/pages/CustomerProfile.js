@@ -59,17 +59,17 @@ export default function CustomerProfile({ theme, toggleTheme }) {
                             </div>
                         </div>
                         <h2 className="text-3xl font-black uppercase tracking-tight text-base-content">{user?.name}</h2>
-                        <p className="text-sm font-bold opacity-40 uppercase tracking-widest mt-1">{user?.email}</p>
+                        <p className="text-sm font-bold opacity-60 uppercase tracking-widest mt-1">{user?.email}</p>
 
                         <div className="flex justify-center gap-8 mt-8 border-t border-base-content/5 pt-8">
                             <div className="flex flex-col">
                                 <span className="text-2xl font-black text-primary">{orders.length}</span>
-                                <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">Buyurtmalar</span>
+                                <span className="text-[10px] font-black opacity-60 uppercase tracking-widest">Buyurtmalar</span>
                             </div>
                             <div className="w-[1px] h-10 bg-base-content/10"></div>
                             <div className="flex flex-col">
                                 <span className="text-2xl font-black text-secondary">0</span>
-                                <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">Bonuslar</span>
+                                <span className="text-[10px] font-black opacity-60 uppercase tracking-widest">Bonuslar</span>
                             </div>
                         </div>
                     </div>
@@ -83,7 +83,7 @@ export default function CustomerProfile({ theme, toggleTheme }) {
                     </h2>
 
                     {orders.length === 0 ? (
-                        <div className="p-20 text-center opacity-30 italic font-medium">Hali buyurtmalar mavjud emas...</div>
+                        <div className="p-20 text-center opacity-50 italic font-medium">Hali buyurtmalar mavjud emas...</div>
                     ) : (
                         <div className="grid gap-4">
                             {orders.map(order => (
@@ -91,7 +91,7 @@ export default function CustomerProfile({ theme, toggleTheme }) {
                                     <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
                                         <div className="flex items-center gap-3">
                                             <div className="bg-primary/10 text-primary font-black px-4 py-2 rounded-xl text-sm">#{order.dailyNumber}</div>
-                                            <div className="text-[10px] font-black opacity-40 uppercase tracking-widest">{new Date(order.createdAt).toLocaleString('uz-UZ')}</div>
+                                            <div className="text-[10px] font-black opacity-60 uppercase tracking-widest">{new Date(order.createdAt).toLocaleString('uz-UZ')}</div>
                                         </div>
                                         <div className="text-xl font-black text-primary tracking-tighter">{order.totalPrice.toLocaleString()} so'm</div>
                                     </div>
@@ -100,7 +100,7 @@ export default function CustomerProfile({ theme, toggleTheme }) {
                                         {order.items.map((item, idx) => (
                                             <div key={idx} className="flex justify-between text-sm font-bold">
                                                 <span className="opacity-70">{item.menuItem?.name || 'O\'chirilgan mahsulot'} x{item.quantity}</span>
-                                                <span className="opacity-40">{(item.price * item.quantity).toLocaleString()}</span>
+                                                <span className="opacity-60">{(item.price * item.quantity).toLocaleString()}</span>
                                             </div>
                                         ))}
                                     </div>
