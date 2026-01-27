@@ -223,6 +223,33 @@ router.patch('/:id/ready', auth, roleCheck(['employee', 'boss', 'super-admin']),
     }
 });
 
+// Mark order as completed/delivered (employee/boss)
+router.patch('/:id/complete', auth, roleCheck(['employee', 'boss', 'super-admin']), async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        order.status = 'completed';
+        order.completedAt = new Date();
+        await order.save();
+
+        await order.populate('items.menuItem');
+
+        // Emit socket event
+        if (req.app.get('io')) {
+            req.app.get('io').emit('orderUpdated', order);
+        }
+
+        res.json({ order });
+    } catch (error) {
+        console.error('Complete order error:', error);
+        res.status(500).json({ error: 'Failed to complete order' });
+    }
+});
+
 // Verify QR code
 router.post('/verify-qr', auth, roleCheck(['employee', 'boss', 'super-admin']), async (req, res) => {
     try {

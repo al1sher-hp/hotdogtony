@@ -35,9 +35,6 @@ export default function EmployeeDashboard() {
             const response = await api.post('/orders/verify-qr', { qrData: decodedText });
             showToast(`Buyurtma #${response.data.order.dailyNumber} TASDIQLANDI`, 'success');
 
-            // Notification sound
-            new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(e => { });
-
             // Stop scanner after success
             if (scannerInstance) {
                 try { await scannerInstance.stop(); } catch (e) { }
@@ -98,7 +95,7 @@ export default function EmployeeDashboard() {
 
     const markCompleted = async (orderId) => {
         try {
-            await api.patch(`/orders/${orderId}`, { status: 'completed' });
+            await api.patch(`/orders/${orderId}/complete`);
             showToast('Topshirildi', 'success');
             fetchOrders();
         } catch (error) {
