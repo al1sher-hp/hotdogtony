@@ -4,6 +4,7 @@ const Order = require('../models/Order');
 const MenuItem = require('../models/MenuItem');
 const auth = require('../middleware/auth');
 const roleCheck = require('../middleware/roleCheck');
+const Counter = require('../models/Counter');
 const { v4: uuidv4 } = require('uuid');
 const { generateOrderQR, verifyQRCode } = require('../utils/qrGenerator');
 
@@ -42,15 +43,15 @@ router.post('/', async (req, res) => {
             totalPrice += menuItem.price * item.quantity;
         }
 
-        // Get daily number (count orders from today)
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        // Get atomic daily number
+        const dateStr = new Date().toISOString().split('T')[0];
+        const counter = await Counter.findOneAndUpdate(
+            { date: dateStr },
+            { $inc: { count: 1 } },
+            { upsert: true, new: true }
+        );
 
-        const dailyOrderCount = await Order.countDocuments({
-            createdAt: { $gte: today }
-        });
-
-        const dailyNumber = dailyOrderCount + 1;
+        const dailyNumber = counter.count;
 
         // Generate final QR data first
         const qrCode = `HDS-${uuidv4()}`;
