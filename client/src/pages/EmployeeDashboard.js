@@ -12,6 +12,7 @@ export default function EmployeeDashboard() {
     const [loading, setLoading] = useState(true);
     const [showScanner, setShowScanner] = useState(false);
     const [scannerInstance, setScannerInstance] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
     const { logout } = useAuth();
 
     const fetchOrders = useCallback(async () => {
@@ -26,23 +27,28 @@ export default function EmployeeDashboard() {
     }, []);
 
     const onScanSuccess = useCallback(async (decodedText) => {
+        if (isProcessing) return; // Ignore if already processing
+
+        setIsProcessing(true);
         try {
             const response = await api.post('/orders/verify-qr', { qrData: decodedText });
             showToast(`Buyurtma #${response.data.order.dailyNumber} TASDIQLANDI`, 'success');
 
+            // Notification sound
+            new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play().catch(e => { });
+
             // Stop scanner after success
             if (scannerInstance) {
-                await scannerInstance.stop();
+                try { await scannerInstance.stop(); } catch (e) { }
             }
             setShowScanner(false);
             fetchOrders();
-
-            // Notification sound
-            new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play();
         } catch (error) {
             showToast('QR kod xato yoki allaqachon tasdiqlangan', 'error');
+        } finally {
+            setIsProcessing(false);
         }
-    }, [fetchOrders, scannerInstance]);
+    }, [fetchOrders, scannerInstance, isProcessing]);
 
     const startScanner = useCallback(async () => {
         try {

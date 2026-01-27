@@ -122,7 +122,12 @@ router.get('/', auth, async (req, res) => {
         if (req.user.role === 'customer') {
             query.customerEmail = req.user.email;
         } else if (status) {
-            query.status = status;
+            // Handle multiple statuses like "preparing,ready"
+            if (status.includes(',')) {
+                query.status = { $in: status.split(',') };
+            } else {
+                query.status = status;
+            }
         }
 
         const orders = await Order.find(query)
