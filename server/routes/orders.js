@@ -21,10 +21,12 @@ router.post('/', async (req, res) => {
         const orderItems = [];
 
         for (const item of items) {
-            const menuItem = await MenuItem.findById(item.menuItemId);
+            // Support both menuItemId and menuItem for backward compatibility during deployment
+            const id = item.menuItemId || item.menuItem;
+            const menuItem = await MenuItem.findById(id);
 
             if (!menuItem) {
-                return res.status(404).json({ error: `Menu item not found: ${item.menuItemId}` });
+                return res.status(404).json({ error: `Menu item not found: ${id}` });
             }
 
             if (!menuItem.available) {

@@ -322,7 +322,7 @@ export function Cart({ theme, toggleTheme }) {
         try {
             const res = await api.post('/orders', {
                 customerName,
-                items: cart.map(i => ({ menuItem: i._id, quantity: i.quantity, price: i.price })),
+                items: cart.map(i => ({ menuItemId: i._id, quantity: i.quantity, price: i.price })),
                 totalPrice
             });
             localStorage.removeItem('cart');
