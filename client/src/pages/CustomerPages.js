@@ -193,6 +193,7 @@ export function Menu({ theme, toggleTheme }) {
     const handleLogout = () => {
         logout();
         localStorage.removeItem('guestName');
+        localStorage.removeItem('cart');
         navigate('/');
         showToast('Tizimdan chiqdingiz', 'info');
     };
@@ -341,6 +342,7 @@ export function Cart({ theme, toggleTheme }) {
     const handleLogout = () => {
         logout();
         localStorage.removeItem('guestName');
+        localStorage.removeItem('cart');
         navigate('/');
         showToast('Tizimdan chiqdingiz', 'info');
     };

@@ -29,6 +29,8 @@ export default function CustomerProfile({ theme, toggleTheme }) {
 
     const handleLogout = () => {
         logout();
+        localStorage.removeItem('guestName');
+        localStorage.removeItem('cart');
         navigate('/');
         showToast('Tizimdan chiqdingiz', 'info');
     };
