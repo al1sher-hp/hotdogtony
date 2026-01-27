@@ -41,6 +41,8 @@ export default function EmployeeDashboard() {
             }
             setShowScanner(false);
             fetchOrders();
+            // Reset lock on success so next scan works when scanner is re-opened
+            isProcessingRef.current = false;
         } catch (error) {
             // Only show toast if it's not a common "already processed" error
             // to avoid duplicates even in error state
