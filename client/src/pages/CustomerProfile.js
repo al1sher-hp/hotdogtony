@@ -62,14 +62,9 @@ export default function CustomerProfile({ theme, toggleTheme }) {
                         <p className="text-sm font-bold opacity-60 uppercase tracking-widest mt-1">{user?.email}</p>
 
                         <div className="flex justify-center gap-8 mt-8 border-t border-base-content/5 pt-8">
-                            <div className="flex flex-col">
-                                <span className="text-2xl font-black text-primary">{orders.length}</span>
-                                <span className="text-[10px] font-black opacity-60 uppercase tracking-widest">Buyurtmalar</span>
-                            </div>
-                            <div className="w-[1px] h-10 bg-base-content/10"></div>
-                            <div className="flex flex-col">
-                                <span className="text-2xl font-black text-secondary">0</span>
-                                <span className="text-[10px] font-black opacity-60 uppercase tracking-widest">Bonuslar</span>
+                            <div className="flex flex-col items-center">
+                                <span className="text-3xl font-black text-primary">{orders.length}</span>
+                                <span className="text-[10px] font-black opacity-60 uppercase tracking-widest mt-1">Jami Buyurtmalar</span>
                             </div>
                         </div>
                     </div>
