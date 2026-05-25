@@ -7,7 +7,7 @@ import { showToast } from '../components/shared/Toast';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, Title, Tooltip, Legend, PointElement } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
-import { FiTrendingUp, FiUsers, FiShoppingBag, FiMessageSquare, FiLogOut, FiDownload, FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiTrendingUp, FiUsers, FiShoppingBag, FiMessageSquare, FiLogOut, FiDownload, FiPlus, FiEdit2, FiTrash2, FiStar } from 'react-icons/fi';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend);
 
