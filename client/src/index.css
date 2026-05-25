@@ -59,6 +59,20 @@
   }
 }
 
+@keyframes floatBg {
+  from { transform: translateY(-20px); }
+  to { transform: translateY(20px); }
+}
+
+.login-mesh-bg {
+  background: radial-gradient(ellipse at 20% 50%, rgba(120, 40, 200, 0.15) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(255, 100, 50, 0.1) 0%, transparent 50%),
+              radial-gradient(ellipse at 60% 80%, rgba(50, 100, 255, 0.08) 0%, transparent 50%),
+              #0f1117;
+  animation: floatBg 8s infinite alternate ease-in-out;
+}
+
+
 @keyframes pulse-glow {
 
   0%,

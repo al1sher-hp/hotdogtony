@@ -56,7 +56,7 @@ export default function DisplayScreen() {
             <header className="bg-[#111114] border-b border-white/5 py-8 px-12 flex justify-between items-center shadow-2xl relative z-10">
                 <div className="flex items-center gap-6">
                     <div className="bg-gradient-to-br from-primary to-secondary p-4 rounded-[2rem] shadow-2xl shadow-primary/20 rotate-3">
-                        <span className="text-5xl">🌭</span>
+                        <FiStar size={40} className="text-white mx-auto mb-2 drop-shadow-lg" />
                     </div>
                     <div>
                         <h1 className="text-5xl font-black tracking-tighter uppercase text-white leading-none">Hotdog Tony</h1>
@@ -142,11 +142,11 @@ export default function DisplayScreen() {
                     {[1, 2, 3].map(i => (
                         <div key={i} className="flex items-center">
                             <span className="text-2xl font-black text-white/20 uppercase tracking-[0.3em] mx-20">Yoqimli ishtaha!</span>
-                            <span className="text-primary text-3xl">🌭</span>
+                            <FiStar size={32} className="text-primary mb-4" />
                             <span className="text-2xl font-black text-white/20 uppercase tracking-[0.3em] mx-20">Sifat kafolatlangan</span>
-                            <span className="text-secondary text-3xl">✨</span>
+                            <FiStar size={32} className="text-secondary mb-4" />
                             <span className="text-2xl font-black text-white/20 uppercase tracking-[0.3em] mx-20">Hotdog Tony - Eng yaxshisi</span>
-                            <span className="text-primary text-3xl">🌭</span>
+                            <FiStar size={32} className="text-primary mb-4" />
                         </div>
                     ))}
                 </div>

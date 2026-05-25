@@ -31,7 +31,7 @@ export default function EmployeeLogin() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
+        <div className="min-h-screen login-mesh-bg flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500">
             <div className="card w-full max-w-md bg-white/5 backdrop-blur-3xl border border-white/5 p-12 rounded-[3.5rem] shadow-5xl animate-in fade-in duration-700">
                 <div className="text-center mb-10">
                     <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-emerald-500/20 rotate-12 group hover:rotate-0 transition-all duration-500">

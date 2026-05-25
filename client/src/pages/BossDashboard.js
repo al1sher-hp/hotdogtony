@@ -108,7 +108,7 @@ export default function BossDashboard() {
             <div className="navbar bg-base-100/80 backdrop-blur-xl border-b border-base-content/5 px-6 sticky top-0 z-50">
                 <div className="flex-1">
                     <h1 className="text-xl font-bold text-base-content flex items-center gap-2">
-                        <span className="p-2 bg-indigo-600 rounded-lg text-white">🌭</span>
+                        <span className="p-2 bg-indigo-600 rounded-lg text-white"><FiStar size={24} /></span>
                         Boshliq Paneli
                     </h1>
                 </div>

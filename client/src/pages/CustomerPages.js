@@ -44,7 +44,7 @@ export function CustomerLanding({ theme, toggleTheme }) {
     };
 
     return (
-        <div className="min-h-screen bg-base-200 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500">
+        <div className="min-h-screen login-mesh-bg flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-500">
             {/* Background elements for Premium feel */}
             <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[140px] animate-pulse-slow"></div>
             <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-secondary/20 rounded-full blur-[140px] animate-pulse-slow"></div>
@@ -58,7 +58,7 @@ export function CustomerLanding({ theme, toggleTheme }) {
             <div className="card w-full max-w-md bg-base-100/80 backdrop-blur-3xl shadow-2xl rounded-[3rem] p-8 md:p-12 border border-base-content/5 animate-in fade-in zoom-in duration-700 relative z-10">
                 <div className="text-center mb-10">
                     <div className="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl rotate-12 group hover:rotate-0 transition-all duration-500 ring-4 ring-white/10">
-                        <span className="text-6xl drop-shadow-xl">🌭</span>
+                        <FiStar className="text-white w-12 h-12 drop-shadow-xl" />
                     </div>
                     <h2 className="text-4xl font-black text-base-content mb-2 tracking-tighter uppercase">Hotdog Tony</h2>
                     <p className="text-base-content/70 font-bold tracking-widest text-[10px] uppercase">Gourmet Street Food Experience</p>
@@ -156,7 +156,7 @@ export function Menu({ theme, toggleTheme }) {
                 <div className="flex-1">
                     <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
                         <div className="bg-primary p-2.5 rounded-2xl text-white shadow-xl shadow-primary/20 group-hover:scale-110 transition-all duration-500">
-                            <span className="text-2xl">🌭</span>
+                            <FiStar size={24} />
                         </div>
                         <h1 className="text-xl font-black tracking-tighter uppercase text-base-content ml-1">Hotdog Tony</h1>
                     </button>
@@ -203,10 +203,11 @@ export function Menu({ theme, toggleTheme }) {
             <main className="container mx-auto p-8 max-w-7xl animate-in fade-in duration-1000">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     {filteredItems.map(item => (
-                        <div key={item._id} className="card bg-base-100 border border-base-content/5 hover:border-primary/20 hover:shadow-2xl transition-all duration-500 rounded-[2.5rem] overflow-hidden group hover:-translate-y-2">
-                            <figure className="h-56 overflow-hidden relative">
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                <div className="absolute top-4 right-4 badge bg-black/50 backdrop-blur-md border-0 text-white font-black text-[9px] px-3 py-2.5 rounded-xl uppercase tracking-widest">{item.category}</div>
+                        <div key={item._id} className="card bg-base-100 border border-base-content/5 hover:border-primary/20 hover:shadow-2xl transition-all duration-500 rounded-[2.5rem] group hover:-translate-y-2">
+                            <figure className="h-[200px] overflow-hidden relative rounded-t-[2.5rem]">
+                                <img src={item.imageUrl || item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+                                <div className="absolute top-4 left-4 badge bg-black/60 backdrop-blur-md border-0 text-white font-black text-[10px] px-3 py-1.5 rounded-full uppercase tracking-widest">{item.category}</div>
                             </figure>
                             <div className="card-body p-8">
                                 <h2 className="card-title font-black uppercase text-lg tracking-tight text-base-content leading-none mb-1">{item.name}</h2>
@@ -323,7 +324,7 @@ export function Cart({ theme, toggleTheme }) {
 
                         {cart.length === 0 ? (
                             <div className="card bg-base-100 p-20 text-center rounded-[3rem] border border-dashed border-base-content/20">
-                                <span className="text-8xl mb-6 grayscale opacity-10">🛒</span>
+                                <FiShoppingCart className="w-24 h-24 mx-auto mb-6 text-base-content opacity-10" />
                                 <p className="font-black opacity-40 uppercase tracking-widest text-sm">Savatchangiz bo'sh...</p>
                                 <button onClick={() => navigate('/menu')} className="btn btn-primary btn-sm mt-8 rounded-xl px-8 shadow-xl shadow-primary/20 text-white">XARIDLARNI BOSHLASH</button>
                             </div>
@@ -473,7 +474,7 @@ export function OrderConfirmation({ theme, toggleTheme }) {
         <div className="min-h-screen bg-base-200 transition-colors duration-500">
             <nav className="navbar bg-base-100/80 border-b border-base-content/5 px-6 backdrop-blur-xl sticky top-0 z-50 h-20">
                 <div className="flex-1">
-                    <button onClick={() => navigate('/menu')} className="btn btn-ghost btn-circle shadow-inner bg-base-200/50"><span className="text-xl">🌭</span></button>
+                    <button onClick={() => navigate('/menu')} className="btn btn-ghost btn-circle shadow-inner bg-base-200/50"><FiStar size={20} className="text-primary" /></button>
                     <h1 className="text-xl font-black uppercase tracking-tighter text-base-content ml-3">Buyurtma Tasdiqi</h1>
                 </div>
                 <button onClick={toggleTheme} className="btn btn-ghost btn-circle btn-sm bg-base-200/50">
