@@ -58,7 +58,7 @@ export function CustomerLanding({ theme, toggleTheme }) {
             <div className="card w-full max-w-md bg-base-100/80 backdrop-blur-3xl shadow-2xl rounded-[3rem] p-8 md:p-12 border border-base-content/5 animate-in fade-in zoom-in duration-700 relative z-10">
                 <div className="text-center mb-10">
                     <div className="w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-2xl rotate-12 group hover:rotate-0 transition-all duration-500 ring-4 ring-white/10">
-                        <FiStar className="text-white w-12 h-12 drop-shadow-xl" />
+                        <img src="/logo.jpg" alt="Hotdog Tony Logo" className="w-16 h-16 rounded-full object-cover shadow-lg" />
                     </div>
                     <h2 className="text-4xl font-black text-base-content mb-2 tracking-tighter uppercase">Hotdog Tony</h2>
                     <p className="text-base-content/70 font-bold tracking-widest text-[10px] uppercase">Gourmet Street Food Experience</p>
@@ -155,8 +155,8 @@ export function Menu({ theme, toggleTheme }) {
             <nav className="navbar bg-base-100/80 border-b border-base-content/5 sticky top-0 z-50 backdrop-blur-xl px-6 h-20">
                 <div className="flex-1">
                     <button onClick={() => navigate('/')} className="flex items-center gap-3 group">
-                        <div className="bg-primary p-2.5 rounded-2xl text-white shadow-xl shadow-primary/20 group-hover:scale-110 transition-all duration-500">
-                            <FiStar size={24} />
+                        <div className="bg-primary p-1 rounded-2xl text-white shadow-xl shadow-primary/20 group-hover:scale-110 transition-all duration-500 overflow-hidden">
+                            <img src="/logo.jpg" alt="Logo" className="w-8 h-8 rounded-xl object-cover" />
                         </div>
                         <h1 className="text-xl font-black tracking-tighter uppercase text-base-content ml-1">Hotdog Tony</h1>
                     </button>
@@ -474,7 +474,9 @@ export function OrderConfirmation({ theme, toggleTheme }) {
         <div className="min-h-screen bg-base-200 transition-colors duration-500">
             <nav className="navbar bg-base-100/80 border-b border-base-content/5 px-6 backdrop-blur-xl sticky top-0 z-50 h-20">
                 <div className="flex-1">
-                    <button onClick={() => navigate('/menu')} className="btn btn-ghost btn-circle shadow-inner bg-base-200/50"><FiStar size={20} className="text-primary" /></button>
+                    <button onClick={() => navigate('/menu')} className="btn btn-ghost btn-circle shadow-inner bg-base-200/50 overflow-hidden p-1">
+                        <img src="/logo.jpg" alt="Logo" className="w-full h-full rounded-full object-cover" />
+                    </button>
                     <h1 className="text-xl font-black uppercase tracking-tighter text-base-content ml-3">Buyurtma Tasdiqi</h1>
                 </div>
                 <button onClick={toggleTheme} className="btn btn-ghost btn-circle btn-sm bg-base-200/50">
