@@ -122,7 +122,7 @@ export function Menu({ theme, toggleTheme }) {
     ];
 
     useEffect(() => {
-        const unsub = getMenuItems().then(items => setMenuItems(items)).finally(() => setLoading(false));
+        getMenuItems().then(items => setMenuItems(items)).finally(() => setLoading(false));
         const savedCart = localStorage.getItem('cart');
         if (savedCart) setCart(JSON.parse(savedCart));
     }, []);
