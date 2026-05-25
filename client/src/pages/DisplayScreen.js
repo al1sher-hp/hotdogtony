@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { subscribeDisplayOrders } from '../utils/firestore';
-import { FiClock, FiCheckCircle, FiBell, FiStar } from 'react-icons/fi';
+import { FiClock, FiCheckCircle, FiBell } from 'react-icons/fi';
 
 export default function DisplayScreen() {
     const [preparing, setPreparing] = useState([]);
