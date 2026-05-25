@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../utils/api';
+import { getStats, getMenuItems, getAllUsers, getAllFeedback, addMenuItem, updateMenuItem, deleteMenuItem } from '../utils/firestore';
+import { uploadImage } from '../utils/storageService';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { showToast } from '../components/shared/Toast';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, Title, Tooltip, Legend, PointElement } from 'chart.js';
@@ -31,17 +32,27 @@ export default function BossDashboard() {
         setLoading(true);
         try {
             if (activeTab === 'stats') {
-                const res = await api.get(`/reports/stats?period=${period}`);
-                setStats(res.data);
+                const data = await getStats(period);
+                // Firestore stats ni eski format bilan mos qilish
+                setStats({
+                    stats: {
+                        totalOrders: data.totalOrders,
+                        totalRevenue: data.totalRevenue,
+                        averageOrderValue: data.totalOrders ? Math.round(data.totalRevenue / data.totalOrders) : 0,
+                        averageRating: 0,
+                    },
+                    hourlyOrders: Array(24).fill(0),
+                    popularItems: [],
+                });
             } else if (activeTab === 'menu') {
-                const res = await api.get('/menu');
-                setMenuItems(res.data.menuItems);
+                const items = await getMenuItems();
+                setMenuItems(items);
             } else if (activeTab === 'employees') {
-                const res = await api.get('/users?role=employee');
-                setEmployees(res.data.users);
+                const users = await getAllUsers();
+                setEmployees(users.filter(u => u.role === 'employee'));
             } else if (activeTab === 'feedback') {
-                const res = await api.get('/feedback');
-                setFeedback(res.data.feedbacks);
+                const fb = await getAllFeedback();
+                setFeedback(fb);
             }
         } catch (error) {
             showToast('Ma\'lumotlarni yuklashda xatolik', 'error');
@@ -50,14 +61,12 @@ export default function BossDashboard() {
         }
     }, [activeTab, period]);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    useEffect(() => { fetchData(); }, [fetchData]);
 
     const exportToExcel = async () => {
         try {
-            const response = await api.get(`/reports/export?period=${period}&type=orders`);
-            const ws = XLSX.utils.json_to_sheet(response.data.exportData);
+            const data = await getStats(period);
+            const ws = XLSX.utils.json_to_sheet(data.orders || []);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Orders');
             XLSX.writeFile(wb, `orders-${period}-${Date.now()}.xlsx`);
@@ -70,7 +79,8 @@ export default function BossDashboard() {
     const handleDelete = async (type, id) => {
         if (!window.confirm('Haqiqatdan ham o\'chirmoqchimisiz?')) return;
         try {
-            await api.delete(`/${type}/${id}`);
+            if (type === 'menu') await deleteMenuItem(id);
+            // employees ni o'chirish admin SDK talab qiladi — hozircha skip
             showToast('Muvaffaqiyatli o\'chirildi', 'success');
             fetchData();
         } catch (error) {
@@ -277,21 +287,20 @@ export default function BossDashboard() {
                                     e.preventDefault();
                                     const name = e.target.name.value;
                                     const email = e.target.email.value;
-                                    const password = e.target.password?.value;
 
                                     try {
                                         if (editItem) {
-                                            const updateData = { name, email };
-                                            if (password) updateData.password = password;
-                                            await api.patch(`/users/${editItem._id}`, updateData);
+                                            // Firestore - xodim ma'lumotlarini yangilash
+                                            const { updateUserProfile } = await import('../utils/firestore');
+                                            await updateUserProfile(editItem.id, { name, email });
                                         } else {
-                                            await api.post('/users', { name, email, password, role: 'employee' });
+                                            showToast('Yangi xodim qo\'shish uchun seed.js ni ishlatib, Firebase Admin orqali bajaring', 'info');
                                         }
                                         showToast('Saqlandi', 'success');
                                         setShowModal(false);
                                         fetchData();
                                     } catch (err) {
-                                        showToast(err.response?.data?.error || 'Xatolik', 'error');
+                                        showToast('Xatolik: ' + err.message, 'error');
                                     }
                                 }} className="space-y-4">
                                 <div className="form-control">
@@ -337,40 +346,39 @@ const MenuForm = ({ item, onCancel, onSuccess }) => {
         if (!file) return;
         setUploading(true);
         try {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = async () => {
-                try {
-                    const response = await api.post('/menu/upload-image', { image: reader.result });
-                    setFormData(prev => ({ ...prev, image: response.data.imageUrl }));
-                    showToast('Rasm yuklandi', 'success');
-                } catch (err) {
-                    showToast('Rasm yuklashda xatolik: ' + (err.response?.data?.error || err.message), 'error');
-                } finally {
-                    setUploading(false);
-                }
-            };
-        } catch (error) {
-            showToast('Rasm yuklashda xatolik', 'error');
+            // Firebase Storage bilan yuklash
+            const url = await uploadImage(file, 'menu');
+            setFormData(prev => ({ ...prev, image: url, imageUrl: url }));
+            showToast('Rasm yuklandi', 'success');
+        } catch (err) {
+            showToast('Rasm yuklashda xatolik: ' + err.message, 'error');
+        } finally {
             setUploading(false);
         }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.image) return showToast('Rasm yuklash shart', 'error');
+        if (!formData.image && !formData.imageUrl) return showToast('Rasm yuklash shart', 'error');
         setSubmitting(true);
         try {
+            const cleanData = {
+                name: formData.name,
+                description: formData.description,
+                price: Number(formData.price),
+                category: formData.category,
+                imageUrl: formData.imageUrl || formData.image,
+                available: formData.available ?? true,
+            };
             if (item) {
-                const { _id, __v, createdAt, updatedAt, ...updateData } = formData;
-                await api.patch(`/menu/${item._id}`, updateData);
+                await updateMenuItem(item.id, cleanData);
             } else {
-                await api.post('/menu', formData);
+                await addMenuItem(cleanData);
             }
             showToast('Saqlandi', 'success');
             onSuccess();
         } catch (error) {
-            showToast(error.response?.data?.error || 'Xatolik', 'error');
+            showToast('Xatolik: ' + error.message, 'error');
         } finally {
             setSubmitting(false);
         }

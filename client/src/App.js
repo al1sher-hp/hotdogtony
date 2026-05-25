@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
-// Force rebuild update
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import socket from './utils/socket';
 
 // Pages (these will be created)
 import {
@@ -34,16 +32,9 @@ function AppContent() {
     const [theme, setTheme] = React.useState(localStorage.getItem('theme') || 'hotdog');
 
     useEffect(() => {
-        // Connect socket
-        socket.connect();
-
         // Apply theme
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
-
-        return () => {
-            socket.disconnect();
-        };
     }, [theme]);
 
     const toggleTheme = () => {

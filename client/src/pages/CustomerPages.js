@@ -3,13 +3,12 @@
 // ==================================================================
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../utils/api';
-import socket from '../utils/socket';
+import { getMenuItems, createOrder, subscribeOrder, submitFeedback } from '../utils/firestore';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon, FiArrowRight, FiUserPlus, FiLogIn, FiClock, FiLogOut } from 'react-icons/fi';
+import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon, FiArrowRight, FiClock, FiLogOut } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 
 // ==================================================================
@@ -17,12 +16,9 @@ import { QRCodeSVG } from 'qrcode.react';
 // ==================================================================
 export function CustomerLanding({ theme, toggleTheme }) {
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [authMode, setAuthMode] = useState('guest'); // 'guest', 'login', 'register'
     const navigate = useNavigate();
-    const { user, login } = useAuth();
+    const { user, loginWithGoogle } = useAuth();
 
     useEffect(() => {
         if (user?.role === 'customer') navigate('/menu');
@@ -34,32 +30,14 @@ export function CustomerLanding({ theme, toggleTheme }) {
         navigate('/menu');
     };
 
-    const handleLogin = async () => {
-        if (!email.trim() || !password.trim()) return showToast('Email va parolni kiriting', 'error');
+    const handleGoogleLogin = async () => {
         setLoading(true);
         try {
-            const response = await api.post('/auth/customer-login', { email, password });
-            login(response.data.token, response.data.user);
+            await loginWithGoogle();
             showToast('Xush kelibsiz!', 'success');
             navigate('/menu');
         } catch (error) {
-            showToast(error.response?.data?.error || 'Kirishda xatolik', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleRegister = async () => {
-        if (!name.trim() || !email.trim() || !password.trim()) return showToast('Barcha maydonlarni to\'ldiring', 'error');
-        if (password.length < 4) return showToast('Parol kamida 4 ta belgidan iborat bo\'lishi kerak', 'error');
-        setLoading(true);
-        try {
-            const response = await api.post('/auth/register', { name, email, password });
-            login(response.data.token, response.data.user);
-            showToast('Muvaffaqiyatli ro\'yxatdan o\'tdingiz!', 'success');
-            navigate('/menu');
-        } catch (error) {
-            showToast(error.response?.data?.error || 'Ro\'yxatdan o\'tishda xatolik', 'error');
+            showToast('Google orqali kirishda xatolik', 'error');
         } finally {
             setLoading(false);
         }
@@ -86,55 +64,37 @@ export function CustomerLanding({ theme, toggleTheme }) {
                     <p className="text-base-content/70 font-bold tracking-widest text-[10px] uppercase">Gourmet Street Food Experience</p>
                 </div>
 
-                <div className="space-y-6">
-                    {authMode === 'guest' && (
-                        <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-                            <input
-                                type="text"
-                                placeholder="Ismingizni kiriting"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content"
-                            />
-                            <button onClick={handleGuestOrder} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white gap-2">
-                                Buyurtma Boshlash <FiArrowRight />
-                            </button>
+                <div className="space-y-4">
+                    <input
+                        type="text"
+                        placeholder="Ismingizni kiriting"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content"
+                    />
+                    <button onClick={handleGuestOrder} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white gap-2">
+                        Buyurtma Boshlash <FiArrowRight />
+                    </button>
 
-                            <div className="divider text-[10px] font-black uppercase opacity-40 tracking-widest">Yoki</div>
+                    <div className="divider text-[10px] font-black uppercase opacity-40 tracking-widest">Yoki</div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <button onClick={() => setAuthMode('login')} className="btn btn-outline btn-sm rounded-xl font-black uppercase text-[10px] tracking-widest gap-2">
-                                    <FiLogIn size={14} /> Kirish
-                                </button>
-                                <button onClick={() => setAuthMode('register')} className="btn btn-outline btn-sm rounded-xl font-black uppercase text-[10px] tracking-widest gap-2">
-                                    <FiUserPlus size={14} /> RO'YXATDAN
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {authMode === 'login' && (
-                        <div className="space-y-4 animate-in slide-in-from-right-4 duration-500">
-                            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
-                            <input type="password" placeholder="Parol" value={password} onChange={(e) => setPassword(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
-                            <button onClick={handleLogin} disabled={loading} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white">
-                                {loading ? <span className="loading loading-spinner"></span> : 'Kirish'}
-                            </button>
-                            <button onClick={() => setAuthMode('guest')} className="btn btn-ghost btn-sm w-full font-bold opacity-40 uppercase tracking-widest text-[10px]">Orqaga</button>
-                        </div>
-                    )}
-
-                    {authMode === 'register' && (
-                        <div className="space-y-4 animate-in slide-in-from-left-4 duration-500">
-                            <input type="text" placeholder="Ism-sharif" value={name} onChange={(e) => setName(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
-                            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
-                            <input type="password" placeholder="Parol" value={password} onChange={(e) => setPassword(e.target.value)} className="input input-bordered w-full h-14 rounded-2xl bg-base-200/50 border-0 focus:ring-2 focus:ring-primary font-bold px-6 text-base-content" />
-                            <button onClick={handleRegister} disabled={loading} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white">
-                                {loading ? <span className="loading loading-spinner"></span> : 'Ro\'yxatdan o\'tish'}
-                            </button>
-                            <button onClick={() => setAuthMode('guest')} className="btn btn-ghost btn-sm w-full font-bold opacity-40 uppercase tracking-widest text-[10px]">Orqaga</button>
-                        </div>
-                    )}
+                    <button
+                        onClick={handleGoogleLogin}
+                        disabled={loading}
+                        className="btn btn-outline w-full h-14 rounded-2xl font-black gap-3 border-base-content/20 hover:border-primary hover:bg-primary/5"
+                    >
+                        {loading ? <span className="loading loading-spinner"></span> : (
+                            <>
+                                <svg width="20" height="20" viewBox="0 0 48 48">
+                                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                                </svg>
+                                Google bilan kirish
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
         </div>
@@ -162,25 +122,15 @@ export function Menu({ theme, toggleTheme }) {
     ];
 
     useEffect(() => {
-        const fetchMenu = async () => {
-            try {
-                const response = await api.get('/menu');
-                setMenuItems(response.data.menuItems);
-            } catch (error) {
-                showToast('Menyuni yuklashda xatolik', 'error');
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchMenu();
+        const unsub = getMenuItems().then(items => setMenuItems(items)).finally(() => setLoading(false));
         const savedCart = localStorage.getItem('cart');
         if (savedCart) setCart(JSON.parse(savedCart));
     }, []);
 
     const addToCart = (item) => {
-        const existingItem = cart.find(c => c._id === item._id);
+        const existingItem = cart.find(c => c.id === item.id);
         const newCart = existingItem
-            ? cart.map(c => c._id === item._id ? { ...c, quantity: c.quantity + 1 } : c)
+            ? cart.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c)
             : [...cart, { ...item, quantity: 1 }];
         setCart(newCart);
         localStorage.setItem('cart', JSON.stringify(newCart));
@@ -324,16 +274,17 @@ export function Cart({ theme, toggleTheme }) {
         if (cart.length === 0) return showToast('Savatchangiz bo\'sh', 'error');
         setLoading(true);
         try {
-            const res = await api.post('/orders', {
+            const orderData = await createOrder({
                 customerName,
-                items: cart.map(i => ({ menuItemId: i._id, quantity: i.quantity, price: i.price })),
-                totalPrice
+                customerEmail: user?.email || null,
+                customerId: user?.uid || null,
+                items: cart.map(i => ({ menuItemId: i.id, name: i.name, quantity: i.quantity, price: i.price, imageUrl: i.imageUrl || i.image || '' })),
             });
             localStorage.removeItem('cart');
             showToast('Buyurtma muvaffaqiyatli berildi!', 'success');
-            navigate(`/order-confirmation/${res.data.order._id}`);
+            navigate(`/order-confirmation/${orderData.id}`);
         } catch (error) {
-            showToast('Xatolik yuz berdi: ' + (error.response?.data?.error || ''), 'error');
+            showToast('Xatolik yuz berdi: ' + error.message, 'error');
         } finally {
             setLoading(false);
         }
@@ -465,12 +416,15 @@ export function OrderConfirmation({ theme, toggleTheme }) {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Firestore dan buyurtmani yuklash
         const fetchOrder = async () => {
             try {
-                const response = await api.get(`/orders/${orderId}`);
-                setOrder(response.data.order);
-                setQrDataURL(JSON.stringify({ orderId: response.data.order._id, code: response.data.order.qrCode, timestamp: Date.now() }));
-                if (response.data.order.feedback) setFeedbackSubmitted(true);
+                const { getOrder } = await import('../utils/firestore');
+                const orderData = await getOrder(orderId);
+                if (!orderData) { showToast('Buyurtma topilmadi', 'error'); setLoading(false); return; }
+                setOrder(orderData);
+                setQrDataURL(orderData.qrCode);
+                if (orderData.feedbackId) setFeedbackSubmitted(true);
             } catch (error) {
                 showToast('Buyurtma topilmadi', 'error');
             } finally {
@@ -478,16 +432,21 @@ export function OrderConfirmation({ theme, toggleTheme }) {
             }
         };
         fetchOrder();
+    }, [orderId]);
 
-        socket.on('orderUpdated', (updatedOrder) => { if (updatedOrder._id === orderId) setOrder(updatedOrder); });
-        socket.on('orderReady', (o) => { if (o._id === orderId) { setOrder(o); setShowFeedbackModal(true); } });
-
-        return () => { socket.off('orderUpdated'); socket.off('orderReady'); };
+    useEffect(() => {
+        if (orderId) {
+            const unsubscribe = subscribeOrder(orderId, (updatedOrder) => {
+                setOrder(updatedOrder);
+                if (updatedOrder.status === 'ready') setShowFeedbackModal(true);
+            });
+            return () => unsubscribe();
+        }
     }, [orderId]);
 
     const handleFeedback = async () => {
         try {
-            await api.post('/feedback', { orderId, rating, comment });
+            await submitFeedback({ orderId, rating, comment, customerEmail: '' });
             setFeedbackSubmitted(true);
             setShowFeedbackModal(false);
             showToast('Fikringiz uchun rahmat!', 'success');
@@ -617,39 +576,27 @@ export function OrderConfirmation({ theme, toggleTheme }) {
 }
 
 // ==================================================================
-// VERIFY MAGIC LINK
+// VERIFY MAGIC LINK — Firebase Auth ishlatilganda bu sahifa shart emas
+// Eski linklar uchun redirect qo'llab-quvvatlash
 // ==================================================================
 export function VerifyMagicLink() {
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const { login } = useAuth();
-    const [status, setStatus] = useState('verifying');
 
     useEffect(() => {
-        const verifyToken = async (token) => {
-            try {
-                const response = await api.get(`/auth/verify-magic-link/${token}`);
-                login(response.data.token, response.data.user);
-                showToast('Xush kelibsiz!', 'success');
-                setTimeout(() => navigate('/menu'), 1000);
-            } catch (error) {
-                setStatus('error');
-                showToast('Link yaroqsiz', 'error');
-            }
-        };
-        const token = searchParams.get('token');
-        if (token) verifyToken(token); else setStatus('error');
-    }, [searchParams, login, navigate]);
-
-    if (status === 'verifying') return <div className="min-h-screen bg-base-200 flex items-center justify-center p-8"><LoadingSpinner text="Tekshirilmoqda..." /></div>;
+        // Firebase Email Link auth ishlatilsa, bu yerda isEmailLink tekshiriladi
+        // Hozircha bosh sahifaga yo'naltirish
+        showToast('Bu link endi ishlamaydi. Iltimos, qaytadan kiring.', 'info');
+        setTimeout(() => navigate('/'), 2000);
+    }, [navigate]);
 
     return (
         <div className="min-h-screen bg-base-200 flex items-center justify-center p-8">
             <div className="card bg-base-100 shadow-4xl p-16 text-center rounded-[3.5rem] border border-base-content/5 max-w-sm">
-                <div className="w-20 h-20 bg-error/10 text-error rounded-[2rem] flex items-center justify-center mx-auto mb-8"><FiCheck size={40} className="rotate-45" /></div>
-                <h2 className="text-3xl font-black text-base-content mb-3 uppercase tracking-tighter">XATOLIK!</h2>
-                <p className="text-xs font-bold opacity-50 uppercase tracking-widest mb-10 leading-relaxed">Xavfsizlik linki yaroqsiz yoki muddati tugagan</p>
-                <button onClick={() => navigate('/')} className="btn btn-primary w-full h-14 rounded-2xl font-black uppercase shadow-xl shadow-primary/20 text-white">BOSHLANG'ICH SAHIFA</button>
+                <div className="w-20 h-20 bg-info/10 text-info rounded-[2rem] flex items-center justify-center mx-auto mb-8">
+                    <FiClock size={40} />
+                </div>
+                <h2 className="text-3xl font-black text-base-content mb-3 uppercase tracking-tighter">Yo'naltirilmoqda...</h2>
+                <p className="text-xs font-bold opacity-50 uppercase tracking-widest mb-10 leading-relaxed">Bosh sahifaga qaytasiz</p>
             </div>
         </div>
     );

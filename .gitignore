@@ -30,3 +30,6 @@ Thumbs.db
 # Misc
 .cache/
 coverage/
+
+# Firebase Service Account
+serviceAccountKey.json

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../utils/api';
-import socket from '../utils/socket';
+import { subscribeEmployeeOrders, updateOrderStatus, getOrderByQR } from '../utils/firestore';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { Html5Qrcode } from 'html5-qrcode';
@@ -15,44 +14,33 @@ export default function EmployeeDashboard() {
     const isProcessingRef = React.useRef(false);
     const { logout } = useAuth();
 
-    const fetchOrders = useCallback(async () => {
-        try {
-            const response = await api.get('/orders?status=preparing,ready');
-            setOrders(response.data.orders);
-        } catch (error) {
-            showToast('Buyurtmalarni yuklab bo\'lmadi', 'error');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
     const onScanSuccess = useCallback(async (decodedText) => {
-        // Double check: if already processing or scanner UI is closed, ignore
         if (isProcessingRef.current || !showScanner) return;
-
         isProcessingRef.current = true;
 
         try {
-            // 1. Immediately stop scanner to prevent more triggers
             if (scannerInstance) {
                 try { await scannerInstance.stop(); } catch (e) { }
             }
 
-            // 2. Process API
-            const response = await api.post('/orders/verify-qr', { qrData: decodedText });
-            showToast(`Buyurtma #${response.data.order.dailyNumber} TASDIQLANDI`, 'success');
+            // Firestore'dan QR kod bilan buyurtma topish
+            const order = await getOrderByQR(decodedText);
+            if (!order) throw new Error('Buyurtma topilmadi');
 
-            // 3. UI Updates
+            // Status yangilash
+            if (order.status === 'pending') {
+                await updateOrderStatus(order.id, 'preparing');
+                showToast(`Buyurtma #${order.dailyNumber} TASDIQLANDI`, 'success');
+            } else {
+                showToast(`Buyurtma #${order.dailyNumber} — ${order.status}`, 'info');
+            }
+
             setShowScanner(false);
-            fetchOrders();
-            // NOTE: We do NOT reset isProcessingRef here. 
-            // It will be reset when the user clicks "QR SCAN" again.
         } catch (error) {
-            showToast(error.response?.data?.error || 'QR kod xato', 'error');
-            // On error, allow retry after 2 seconds
+            showToast(error.message || 'QR kod xato', 'error');
             setTimeout(() => { if (showScanner) isProcessingRef.current = false; }, 2000);
         }
-    }, [fetchOrders, scannerInstance, showScanner]);
+    }, [scannerInstance, showScanner]);
 
     const startScanner = useCallback(async () => {
         try {
@@ -95,9 +83,8 @@ export default function EmployeeDashboard() {
 
     const markReady = async (orderId) => {
         try {
-            await api.patch(`/orders/${orderId}/ready`);
+            await updateOrderStatus(orderId, 'ready');
             showToast('Tayyor!', 'success');
-            fetchOrders();
         } catch (error) {
             showToast('Xatolik yuz berdi', 'error');
         }
@@ -105,28 +92,21 @@ export default function EmployeeDashboard() {
 
     const markCompleted = async (orderId) => {
         try {
-            await api.patch(`/orders/${orderId}/complete`);
+            await updateOrderStatus(orderId, 'completed');
             showToast('Topshirildi', 'success');
-            fetchOrders();
         } catch (error) {
             showToast('Xatolik yuz berdi', 'error');
         }
     };
 
     useEffect(() => {
-        fetchOrders();
-        socket.emit('joinEmployee');
-
-        // Note: We no longer listen to 'newOrder' since they are silent now
-        // We only listen for updates (like when something is scanned or moved)
-        socket.on('orderUpdated', () => fetchOrders());
-        socket.on('orderReady', () => fetchOrders());
-
-        return () => {
-            socket.off('orderUpdated');
-            socket.off('orderReady');
-        };
-    }, [fetchOrders]);
+        // Firestore real-time subscription — Socket.io o'rniga
+        const unsubscribe = subscribeEmployeeOrders((orders) => {
+            setOrders(orders);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
 
     // Handle scanner UI lifecycle
     useEffect(() => {
@@ -190,10 +170,10 @@ export default function EmployeeDashboard() {
                             ) : (
                                 orders.filter(o => o.status === 'preparing').map(order => (
                                     <OrderCard
-                                        key={order._id}
+                                        key={order.id}
                                         order={order}
                                         type="preparing"
-                                        onAction={() => markReady(order._id)}
+                                        onAction={() => markReady(order.id)}
                                     />
                                 ))
                             )}
@@ -216,10 +196,10 @@ export default function EmployeeDashboard() {
                             ) : (
                                 orders.filter(o => o.status === 'ready').map(order => (
                                     <OrderCard
-                                        key={order._id}
+                                        key={order.id}
                                         order={order}
                                         type="ready"
-                                        onAction={() => markCompleted(order._id)}
+                                        onAction={() => markCompleted(order.id)}
                                     />
                                 ))
                             )}
@@ -257,7 +237,7 @@ const OrderCard = ({ order, type, onAction }) => (
         <div className="space-y-2 mb-8">
             {order.items.map((item, idx) => (
                 <div key={idx} className="flex justify-between items-center bg-base-200 p-3 rounded-2xl group border border-base-content/5 hover:bg-base-100 hover:border-base-content/10 transition-all">
-                    <span className="font-bold text-base-content">{item.menuItem.name}</span>
+                    <span className="font-bold text-base-content">{item.name || item.menuItem?.name || 'Mahsulot'}</span>
                     <span className="badge bg-base-content text-base-100 border-0 h-6 w-6 p-0 text-[10px] font-black rounded-lg">x{item.quantity}</span>
                 </div>
             ))}

@@ -1,57 +1,52 @@
 import React, { useState, useEffect, useRef } from 'react';
-import socket from '../utils/socket';
-import api from '../utils/api';
+import { subscribeDisplayOrders } from '../utils/firestore';
 import { FiClock, FiCheckCircle, FiBell } from 'react-icons/fi';
 
 export default function DisplayScreen() {
     const [preparing, setPreparing] = useState([]);
     const [ready, setReady] = useState([]);
     const audioRef = useRef(null);
+    const prevReadyIds = useRef(new Set());
 
     useEffect(() => {
-        socket.connect();
-        socket.emit('joinDisplay');
-
-        const fetchOrders = async () => {
-            try {
-                const response = await api.get('/orders/display');
-                setPreparing(response.data.preparing || []);
-                setReady(response.data.ready || []);
-            } catch (error) {
-                console.error('Fetch error:', error);
-            }
-        };
-
         const playSound = () => {
             if (audioRef.current) {
                 audioRef.current.play().catch(e => console.log('Audio play prevented'));
             }
         };
 
-        fetchOrders();
+        // Firestore real-time subscription — Socket.io o'rniga
+        const unsubscribe = subscribeDisplayOrders(({ preparing: prep, ready: rdy }) => {
+            setPreparing(prep);
 
-        socket.on('orderUpdated', (order) => {
-            if (order.status === 'preparing') {
-                setPreparing(prev => [order, ...prev.filter(o => o._id !== order._id)]);
-                setReady(prev => prev.filter(o => o._id !== order._id));
-            } else if (order.status === 'completed' || order.status === 'cancelled') {
-                setPreparing(prev => prev.filter(o => o._id !== order._id));
-                setReady(prev => prev.filter(o => o._id !== order._id));
-            }
+            // Yangi tayyor buyurtmalar uchun ovoz chalish
+            rdy.forEach(order => {
+                if (!prevReadyIds.current.has(order.id)) {
+                    playSound();
+                }
+            });
+            prevReadyIds.current = new Set(rdy.map(o => o.id));
+
+            // Ready buyurtmalarni 5 daqiqadan keyin olib tashlash
+            setReady(rdy.filter(order => {
+                if (!order.readyAt) return true;
+                const readyTime = order.readyAt?.toDate ? order.readyAt.toDate() : new Date(order.readyAt);
+                return (Date.now() - readyTime.getTime()) < 5 * 60 * 1000;
+            }));
         });
 
-        socket.on('orderReady', (order) => {
-            setPreparing(prev => prev.filter(o => o._id !== order._id));
-            setReady(prev => [order, ...prev.filter(o => o._id !== order._id)]);
-            playSound();
-            setTimeout(() => {
-                setReady(prev => prev.filter(o => o._id !== order._id));
-            }, 60000);
-        });
+        // Ready buyurtmalarni 1 daqiqada bir tozalash
+        const cleanupInterval = setInterval(() => {
+            setReady(prev => prev.filter(order => {
+                if (!order.readyAt) return true;
+                const readyTime = order.readyAt?.toDate ? order.readyAt.toDate() : new Date(order.readyAt);
+                return (Date.now() - readyTime.getTime()) < 5 * 60 * 1000;
+            }));
+        }, 60000);
 
         return () => {
-            socket.off('orderUpdated');
-            socket.off('orderReady');
+            unsubscribe();
+            clearInterval(cleanupInterval);
         };
     }, []);
 

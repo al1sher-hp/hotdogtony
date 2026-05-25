@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../utils/api';
 import { showToast } from '../components/shared/Toast';
 
 export default function EmployeeLogin() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const { loginWithEmail } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -16,12 +15,16 @@ export default function EmployeeLogin() {
         setLoading(true);
 
         try {
-            const response = await api.post('/auth/login', { email, password });
-            login(response.data.token, response.data.user);
+            await loginWithEmail(email, password);
+            // AuthContext onAuthStateChanged Firestore'dan rolni yuklab, user'ni set qiladi
+            // Role check keyin App.js tomonidan bajariladi
             showToast('Xush kelibsiz!', 'success');
             navigate('/employee/dashboard');
         } catch (error) {
-            showToast(error.response?.data?.error || 'Login xato', 'error');
+            const msg = error.code === 'auth/invalid-credential'
+                ? 'Email yoki parol noto\'g\'ri'
+                : error.message;
+            showToast(msg, 'error');
         } finally {
             setLoading(false);
         }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../utils/api';
+import { getAllUsers, getAllOrders, getMenuItems, getAllFeedback, addMenuItem, updateMenuItem, deleteMenuItem, deleteOrder } from '../utils/firestore';
+import { uploadImage } from '../utils/storageService';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { showToast } from '../components/shared/Toast';
 import { FiUsers, FiShoppingBag, FiBox, FiMessageSquare, FiLogOut, FiTrash2, FiShield, FiPlus, FiEdit2, FiUpload } from 'react-icons/fi';
@@ -28,16 +29,14 @@ export default function SuperAdminDashboard() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            let endpoint = '';
+            let result = [];
             switch (activeTab) {
-                case 'users': endpoint = '/users'; break;
-                case 'orders': endpoint = '/orders'; break;
-                case 'menu': endpoint = '/menu'; break;
-                case 'feedback': endpoint = '/feedback'; break;
-                default: endpoint = '/users';
+                case 'users':    result = await getAllUsers(); break;
+                case 'orders':   result = await getAllOrders(); break;
+                case 'menu':     result = await getMenuItems(); break;
+                case 'feedback': result = await getAllFeedback(); break;
+                default:         result = await getAllUsers();
             }
-            const res = await api.get(endpoint);
-            const result = res.data.users || res.data.orders || res.data.menuItems || res.data.feedbacks || [];
             setData(result);
         } catch (error) {
             showToast('Ma\'lumotlarni yuklab bo\'lmadi', 'error');
@@ -46,9 +45,7 @@ export default function SuperAdminDashboard() {
         }
     }, [activeTab]);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    useEffect(() => { fetchData(); }, [fetchData]);
 
     const handleOpenModal = (item = null) => {
         if (activeTab === 'users') {
@@ -88,16 +85,16 @@ export default function SuperAdminDashboard() {
         setSubmitting(true);
         try {
             if (editItem) {
-                await api.patch(`/users/${editItem._id}`, userFormData);
+                const { updateUserProfile } = await import('../utils/firestore');
+                await updateUserProfile(editItem.id, { name: userFormData.name, email: userFormData.email, role: userFormData.role });
                 showToast('Foydalanuvchi yangilandi!', 'success');
             } else {
-                await api.post('/users', userFormData);
-                showToast('Foydalanuvchi yaratildi!', 'success');
+                showToast('Yangi foydalanuvchi qo\'shish uchun seed.js ni ishlating', 'info');
             }
             setShowModal(false);
             fetchData();
         } catch (error) {
-            showToast(error.response?.data?.error || 'Xatolik', 'error');
+            showToast('Xatolik: ' + error.message, 'error');
         } finally {
             setSubmitting(false);
         }
@@ -105,20 +102,28 @@ export default function SuperAdminDashboard() {
 
     const handleMenuSubmit = async (e) => {
         e.preventDefault();
-        if (!menuFormData.image) return showToast('Rasm yuklash shart!', 'error');
+        if (!menuFormData.image && !menuFormData.imageUrl) return showToast('Rasm yuklash shart!', 'error');
         setSubmitting(true);
         try {
+            const cleanData = {
+                name: menuFormData.name,
+                description: menuFormData.description,
+                price: Number(menuFormData.price),
+                category: menuFormData.category,
+                imageUrl: menuFormData.imageUrl || menuFormData.image,
+                available: menuFormData.available ?? true,
+            };
             if (editItem) {
-                await api.patch(`/menu/${editItem._id}`, menuFormData);
+                await updateMenuItem(editItem.id, cleanData);
                 showToast('Mahsulot yangilandi!', 'success');
             } else {
-                await api.post('/menu', menuFormData);
+                await addMenuItem(cleanData);
                 showToast('Mahsulot yaratildi!', 'success');
             }
             setShowModal(false);
             fetchData();
         } catch (error) {
-            showToast(error.response?.data?.error || 'Xatolik', 'error');
+            showToast('Xatolik: ' + error.message, 'error');
         } finally {
             setSubmitting(false);
         }
@@ -129,21 +134,12 @@ export default function SuperAdminDashboard() {
         if (!file) return;
         setUploading(true);
         try {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onloadend = async () => {
-                try {
-                    const res = await api.post('/menu/upload-image', { image: reader.result });
-                    setMenuFormData(prev => ({ ...prev, image: res.data.imageUrl }));
-                    showToast('Rasm muvaffaqiyatli yuklandi', 'success');
-                } catch (err) {
-                    showToast('Rasm yuklashda xatolik', 'error');
-                } finally {
-                    setUploading(false);
-                }
-            };
-        } catch (error) {
-            showToast('Faylni o\'qishda xatolik', 'error');
+            const url = await uploadImage(file, 'menu');
+            setMenuFormData(prev => ({ ...prev, image: url, imageUrl: url }));
+            showToast('Rasm muvaffaqiyatli yuklandi', 'success');
+        } catch (err) {
+            showToast('Rasm yuklashda xatolik: ' + err.message, 'error');
+        } finally {
             setUploading(false);
         }
     };
@@ -157,21 +153,17 @@ export default function SuperAdminDashboard() {
         if (!window.confirm('Haqiqatdan ham o\'chirmoqchimisiz?')) return;
 
         try {
-            let endpoint = '';
             switch (activeTab) {
-                case 'users': endpoint = `/users/${id}`; break;
-                case 'orders': endpoint = `/orders/${id}`; break;
-                case 'menu': endpoint = `/menu/${id}`; break;
-                case 'feedback': endpoint = `/feedback/${id}`; break;
+                case 'orders': await deleteOrder(id); break;
+                case 'menu':   await deleteMenuItem(id); break;
+                case 'users':  showToast('User o\'chirish Firebase Admin orqali bajariladi', 'info'); return;
                 default: return;
             }
-
-            await api.delete(endpoint);
             showToast('Muvaffaqiyatli o\'chirildi', 'success');
-            setData(prev => prev.filter(item => item._id !== id));
+            setData(prev => prev.filter(item => item.id !== id));
         } catch (error) {
             console.error('Delete error:', error);
-            showToast(error.response?.data?.error || 'O\'chirishda xatolik yuz berdi', 'error');
+            showToast('O\'chirishda xatolik: ' + error.message, 'error');
         }
     };
 
@@ -249,12 +241,12 @@ export default function SuperAdminDashboard() {
                                 </thead>
                                 <tbody>
                                     {data.map((item) => (
-                                        <tr key={item._id} className="bg-base-100/40 hover:bg-base-100/60 transition-all rounded-3xl border-0 group">
+                                        <tr key={item.id || item._id} className="bg-base-100/40 hover:bg-base-100/60 transition-all rounded-3xl border-0 group">
                                             {activeTab === 'users' && (
                                                 <>
                                                     <td className="font-bold text-base-content uppercase rounded-l-3xl">{item.name}</td>
                                                     <td className="text-base-content/60">{item.email}</td>
-                                                    <td><div className="badge badge-sm rounded-lg font-black text-[9px] bg-red-500/20 text-red-500 border-0">{item.role.toUpperCase()}</div></td>
+                                                    <td><div className="badge badge-sm rounded-lg font-black text-[9px] bg-red-500/20 text-red-500 border-0">{item.role?.toUpperCase()}</div></td>
                                                 </>
                                             )}
                                             {activeTab === 'orders' && (
@@ -285,7 +277,7 @@ export default function SuperAdminDashboard() {
                                                     {(activeTab === 'users' || activeTab === 'menu') && (
                                                         <button onClick={() => handleOpenModal(item)} className="btn btn-ghost btn-xs text-blue-400 hover:bg-blue-400/10"><FiEdit2 /></button>
                                                     )}
-                                                    <button onClick={() => handleDelete(item._id, item.role)} className="btn btn-ghost btn-xs text-red-500 hover:bg-red-500/10"><FiTrash2 /></button>
+                                                    <button onClick={() => handleDelete(item.id || item._id, item.role)} className="btn btn-ghost btn-xs text-red-500 hover:bg-red-500/10"><FiTrash2 /></button>
                                                 </div>
                                             </td>
                                         </tr>

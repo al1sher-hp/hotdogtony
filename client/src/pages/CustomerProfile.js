@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../utils/api';
+import { subscribeCustomerOrders } from '../utils/firestore';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { showToast } from '../components/shared/Toast';
 import { FiClock, FiLogOut, FiSun, FiMoon, FiChevronLeft } from 'react-icons/fi';
@@ -13,18 +13,14 @@ export default function CustomerProfile({ theme, toggleTheme }) {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchOrders = async () => {
-            try {
-                const response = await api.get('/orders/my/orders');
-                setOrders(response.data.orders);
-            } catch (error) {
-                showToast('Buyurtmalarni yuklab bo\'lmadi', 'error');
-            } finally {
-                setLoading(false);
-            }
-        };
+        if (!user?.email) { setLoading(false); return; }
 
-        fetchOrders();
+        // Firestore real-time subscription
+        const unsubscribe = subscribeCustomerOrders(user.email, (orders) => {
+            setOrders(orders);
+            setLoading(false);
+        });
+        return () => unsubscribe();
     }, [user]);
 
     const handleLogout = () => {
@@ -84,7 +80,7 @@ export default function CustomerProfile({ theme, toggleTheme }) {
                     ) : (
                         <div className="grid gap-4">
                             {orders.map(order => (
-                                <div key={order._id} className="card bg-base-100 border border-base-300 rounded-[2.5rem] p-8 hover:shadow-xl transition-all group">
+                                <div key={order.id || order._id} className="card bg-base-100 border border-base-300 rounded-[2.5rem] p-8 hover:shadow-xl transition-all group">
                                     <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
                                         <div className="flex items-center gap-3">
                                             <div className="bg-primary/10 text-primary font-black px-4 py-2 rounded-xl text-sm">#{order.dailyNumber}</div>
@@ -96,7 +92,7 @@ export default function CustomerProfile({ theme, toggleTheme }) {
                                     <div className="grid gap-2 mb-4 bg-base-200/50 p-4 rounded-2xl">
                                         {order.items.map((item, idx) => (
                                             <div key={idx} className="flex justify-between text-sm font-bold">
-                                                <span className="opacity-70">{item.menuItem?.name || 'O\'chirilgan mahsulot'} x{item.quantity}</span>
+                                                <span className="opacity-70">{item.name || item.menuItem?.name || 'Mahsulot'} x{item.quantity}</span>
                                                 <span className="opacity-60">{(item.price * item.quantity).toLocaleString()}</span>
                                             </div>
                                         ))}
@@ -106,7 +102,7 @@ export default function CustomerProfile({ theme, toggleTheme }) {
                                         <span className={`text-[10px] font-black uppercase tracking-widest rounded-lg px-3 py-1.5 ${order.status === 'completed' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
                                             {order.status}
                                         </span>
-                                        <button onClick={() => navigate(`/order-confirmation/${order._id}`)} className="btn btn-ghost btn-sm text-primary rounded-xl font-black text-[10px] uppercase">Batafsil →</button>
+                                        <button onClick={() => navigate(`/order-confirmation/${order.id || order._id}`)} className="btn btn-ghost btn-sm text-primary rounded-xl font-black text-[10px] uppercase">Batafsil →</button>
                                     </div>
                                 </div>
                             ))}
