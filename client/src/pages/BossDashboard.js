@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getStats, getMenuItems, getAllUsers, getAllFeedback, addMenuItem, updateMenuItem, deleteMenuItem } from '../utils/firestore';
+import { getStats, getOrdersForExport, getMenuItems, getAllUsers, getAllFeedback, addMenuItem, updateMenuItem, deleteMenuItem } from '../utils/firestore';
 import { uploadImage } from '../utils/storageService';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { showToast } from '../components/shared/Toast';
@@ -65,8 +65,8 @@ export default function BossDashboard() {
 
     const exportToExcel = async () => {
         try {
-            const data = await getStats(period);
-            const ws = XLSX.utils.json_to_sheet(data.orders || []);
+            const orders = await getOrdersForExport(period);
+            const ws = XLSX.utils.json_to_sheet(orders || []);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Orders');
             XLSX.writeFile(wb, `orders-${period}-${Date.now()}.xlsx`);

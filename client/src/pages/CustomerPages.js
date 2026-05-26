@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getMenuItems, createOrder, subscribeOrder, submitFeedback } from '../utils/firestore';
+import { subscribeMenuItems, createOrder, subscribeOrder, submitFeedback } from '../utils/firestore';
 import { showToast } from '../components/shared/Toast';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import { FiShoppingCart, FiUser, FiPlus, FiMinus, FiTrash2, FiMessageSquare, FiStar, FiCheck, FiSun, FiMoon, FiArrowRight, FiClock, FiLogOut } from 'react-icons/fi';
@@ -122,9 +122,13 @@ export function Menu({ theme, toggleTheme }) {
     ];
 
     useEffect(() => {
-        getMenuItems().then(items => setMenuItems(items)).finally(() => setLoading(false));
+        const unsubscribe = subscribeMenuItems(items => {
+            setMenuItems(items);
+            setLoading(false);
+        });
         const savedCart = localStorage.getItem('cart');
         if (savedCart) setCart(JSON.parse(savedCart));
+        return () => unsubscribe();
     }, []);
 
     const addToCart = (item) => {

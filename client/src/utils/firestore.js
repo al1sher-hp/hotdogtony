@@ -14,6 +14,9 @@ import {
     increment,
     serverTimestamp,
     setDoc,
+    getCountFromServer,
+    getAggregateFromServer,
+    sum
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { v4 as uuidv4 } from 'uuid';
@@ -260,15 +263,37 @@ export const getStats = async (period = 'daily') => {
 
     const q = query(
         collection(db, 'orders'),
+        where('createdAt', '>=', startDate)
+    );
+    
+    const countSnap = await getCountFromServer(q);
+    const totalOrders = countSnap.data().count;
+    
+    // sum aggregatsiyasi (ba'zi hollarda alohida ishlatiladi, ba'zan bittada, biz bittada ishlatamiz)
+    const aggregateSnap = await getAggregateFromServer(q, {
+        totalRevenue: sum('totalPrice')
+    });
+    
+    return {
+        totalOrders,
+        totalRevenue: aggregateSnap.data().totalRevenue || 0,
+        completedOrders: 0 // completed count ni ham aggregate qilish mumkin yoki qisqa tutamiz
+    };
+};
+
+export const getOrdersForExport = async (period = 'daily') => {
+    const now = new Date();
+    let startDate = new Date();
+
+    if (period === 'daily') startDate.setHours(0, 0, 0, 0);
+    else if (period === 'weekly') startDate.setDate(now.getDate() - 7);
+    else if (period === 'monthly') startDate.setMonth(now.getMonth() - 1);
+
+    const q = query(
+        collection(db, 'orders'),
         where('createdAt', '>=', startDate),
         orderBy('createdAt', 'desc')
     );
     const snap = await getDocs(q);
-    const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    const totalRevenue = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
-    const totalOrders = orders.length;
-    const completedOrders = orders.filter(o => o.status === 'completed').length;
-
-    return { totalRevenue, totalOrders, completedOrders, orders };
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
