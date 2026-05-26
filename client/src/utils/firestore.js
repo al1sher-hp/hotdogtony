@@ -126,50 +126,51 @@ export const deleteOrder = async (id) => {
     await deleteDoc(doc(db, 'orders', id));
 };
 
-// Subscribe: Hodim paneli uchun (pending + preparing)
 export const subscribeEmployeeOrders = (callback) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const q = query(
         collection(db, 'orders'),
-        where('status', 'in', ['pending', 'preparing', 'ready']),
-        orderBy('createdAt', 'desc'),
-        limit(50)
+        where('status', 'in', ['pending', 'preparing', 'ready'])
     );
     return onSnapshot(q, snap => {
-        callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        callback(docs);
+    }, err => {
+        console.error("Employee orders error:", err);
+        callback([]);
     });
 };
 
-// Subscribe: Display screen uchun
 export const subscribeDisplayOrders = (callback) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
     const q = query(
         collection(db, 'orders'),
-        where('status', 'in', ['preparing', 'ready']),
-        orderBy('createdAt', 'desc'),
-        limit(30)
+        where('status', 'in', ['preparing', 'ready'])
     );
     return onSnapshot(q, snap => {
-        const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
         callback({
-            preparing: orders.filter(o => o.status === 'preparing'),
-            ready: orders.filter(o => o.status === 'ready'),
+            preparing: docs.filter(o => o.status === 'preparing'),
+            ready: docs.filter(o => o.status === 'ready'),
         });
+    }, err => {
+        console.error("Display orders error:", err);
+        callback({ preparing: [], ready: [] });
     });
 };
 
-// Subscribe: Mijoz o'z buyurtmalarini
 export const subscribeCustomerOrders = (email, callback) => {
     const q = query(
         collection(db, 'orders'),
-        where('customerEmail', '==', email),
-        orderBy('createdAt', 'desc'),
-        limit(20)
+        where('customerEmail', '==', email)
     );
     return onSnapshot(q, snap => {
-        callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        let docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        docs.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        callback(docs.slice(0, 20)); // Limit client side
+    }, err => {
+        console.error("Customer orders error:", err);
+        callback([]);
     });
 };
 
