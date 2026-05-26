@@ -82,10 +82,7 @@
   z-index: 0;
 }
 
-.login-mesh-bg > * {
-  position: relative;
-  z-index: 1;
-}
+
 
 
 @keyframes pulse-glow {
